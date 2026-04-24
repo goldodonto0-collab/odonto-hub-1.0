@@ -5,7 +5,8 @@ import {
   collection,
   getDocs,
   deleteDoc,
-  doc
+  doc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -162,20 +163,10 @@ function gerarPDF() {
       <head>
         <title>Ficha do Paciente</title>
         <style>
-          body {
-            font-family: Arial;
-            padding: 30px;
-            color: #000;
-          }
-          h2, h3 {
-            text-align: center;
-          }
-          p {
-            margin: 8px 0;
-          }
-          hr {
-            margin: 15px 0;
-          }
+          body { font-family: Arial; padding: 30px; }
+          h2, h3 { text-align: center; }
+          p { margin: 8px 0; }
+          hr { margin: 15px 0; }
         </style>
       </head>
       <body>
@@ -238,11 +229,27 @@ async function listar() {
     li.innerHTML = `
       <strong>${data.nome}</strong><br>
       ${data.feito} | ${data.proximo} | ${data.data}
+      <button onclick="editarAtendimento('${id}', '${data.feito}', '${data.proximo}')">Editar</button>
       <button onclick="excluir('${id}')">Excluir</button>
     `;
 
     lista.appendChild(li);
   });
+}
+
+async function editarAtendimento(id, feitoAtual, proximoAtual) {
+  const novoFeito = prompt("Editar procedimento:", feitoAtual);
+  if (novoFeito === null) return;
+
+  const novoProximo = prompt("Editar próximo retorno:", proximoAtual);
+  if (novoProximo === null) return;
+
+  await updateDoc(doc(db, "atendimentos", id), {
+    feito: novoFeito,
+    proximo: novoProximo
+  });
+
+  listar();
 }
 
 async function excluir(id) {
@@ -310,6 +317,7 @@ window.verFicha = verFicha;
 window.fecharFicha = fecharFicha;
 window.gerarPDF = gerarPDF;
 window.mostrarAba = mostrarAba;
+window.editarAtendimento = editarAtendimento;
 
 listarPacientes();
 listar();
