@@ -33,3 +33,4 @@ async function carregarCalendario() {
     lista.appendChild(li);
   });
 }
+window.carregarCalendario = carregarCalendario;
