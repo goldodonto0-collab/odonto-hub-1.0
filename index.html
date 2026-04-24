@@ -11,10 +11,11 @@
   <div class="container">
     <h1>Odonto Hub</h1>
 
+    <!-- ABAS -->
     <div class="tabs">
-      <button onclick="mostrarAba('pacientes')">Pacientes</button>
-      <button onclick="mostrarAba('atendimentos')">Atendimentos</button>
-      <button onclick="mostrarAba('calendario')">Calendário</button>
+      <button type="button" onclick="mostrarAba('pacientes')">Pacientes</button>
+      <button type="button" onclick="mostrarAba('atendimentos')">Atendimentos</button>
+      <button type="button" onclick="mostrarAba('calendario')">Calendário</button>
     </div>
 
     <!-- ABA PACIENTES -->
@@ -31,7 +32,7 @@
         <input id="saudePaciente" type="text" placeholder="Problema de saúde">
         <textarea id="observacoesPaciente" placeholder="Observações"></textarea>
 
-        <button onclick="salvarPaciente()">Salvar Paciente</button>
+        <button type="button" onclick="salvarPaciente()">Salvar Paciente</button>
       </div>
 
       <div class="card">
@@ -47,8 +48,9 @@
 
         <input id="nome" type="text" placeholder="Nome do paciente">
         <input id="feito" type="text" placeholder="Procedimento realizado">
-        <input id="proximo" type="text" placeholder="Próximo retorno">
-        <button onclick="salvar()">Salvar Atendimento</button>
+        <input id="proximo" type="text" placeholder="Próximo retorno (dd/mm/aaaa)">
+
+        <button type="button" onclick="salvar()">Salvar Atendimento</button>
       </div>
 
       <div class="card">
