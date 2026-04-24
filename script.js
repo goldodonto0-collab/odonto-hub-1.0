@@ -15,13 +15,57 @@ const firebaseConfig = {
   projectId: "agenda-paciente",
   storageBucket: "agenda-paciente.appspot.com",
   messagingSenderId: "159249022645",
-  appId: "1:159249022645:web:08b5fe64f2f0db4c9708fc",
-  measurementId: "G-B56CBCXFTS"
+  appId: "1:159249022645:web:08b5fe64f2f0db4c9708fc"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+let pacientesMap = {}; // 🔥 guardar ids
+
+// 👤 SALVAR PACIENTE
+async function salvarPaciente() {
+  const nome = document.getElementById("nomePaciente").value;
+  const telefone = document.getElementById("telefonePaciente").value;
+
+  if (!nome.trim()) {
+    alert("Digite o nome!");
+    return;
+  }
+
+  await addDoc(collection(db, "pacientes"), {
+    nome,
+    telefone
+  });
+
+  document.getElementById("nomePaciente").value = "";
+  document.getElementById("telefonePaciente").value = "";
+
+  listarPacientes();
+}
+
+// 📋 LISTAR PACIENTES
+async function listarPacientes() {
+  const lista = document.getElementById("listaPacientes");
+  lista.innerHTML = "";
+
+  const querySnapshot = await getDocs(collection(db, "pacientes"));
+
+  pacientesMap = {};
+
+  querySnapshot.forEach((docItem) => {
+    const data = docItem.data();
+    const id = docItem.id;
+
+    pacientesMap[data.nome] = id;
+
+    const li = document.createElement("li");
+    li.textContent = `${data.nome} - ${data.telefone || ""}`;
+    lista.appendChild(li);
+  });
+}
+
+// 📝 SALVAR ATENDIMENTO (AGORA CORRETO)
 async function salvar() {
   const nome = document.getElementById("nome").value;
   const feito = document.getElementById("feito").value;
@@ -32,10 +76,18 @@ async function salvar() {
     return;
   }
 
-  await addDoc(collection(db, "pacientes"), {
-    nome: nome,
-    feito: feito,
-    proximo: proximo,
+  const pacienteId = pacientesMap[nome];
+
+  if (!pacienteId) {
+    alert("Paciente não cadastrado!");
+    return;
+  }
+
+  await addDoc(collection(db, "atendimentos"), {
+    pacienteId,
+    nome,
+    feito,
+    proximo,
     data: new Date().toLocaleDateString()
   });
 
@@ -46,11 +98,12 @@ async function salvar() {
   listar();
 }
 
+// 📄 LISTAR ATENDIMENTOS
 async function listar() {
   const lista = document.getElementById("lista");
   lista.innerHTML = "";
 
-  const querySnapshot = await getDocs(collection(db, "pacientes"));
+  const querySnapshot = await getDocs(collection(db, "atendimentos"));
 
   const pacientes = {};
 
@@ -64,7 +117,7 @@ async function listar() {
 
     pacientes[data.nome].push({
       ...data,
-      id: id
+      id
     });
   });
 
@@ -78,8 +131,7 @@ async function listar() {
       const subLi = document.createElement("li");
 
       subLi.innerHTML = `
-        ${item.feito} | ${item.proximo} | ${item.data || ""}
-        <button onclick="editar('${item.id}', '${item.nome}', '${item.feito}', '${item.proximo}')">Editar</button>
+        ${item.feito} | ${item.proximo} | ${item.data}
         <button onclick="excluir('${item.id}')">Excluir</button>
       `;
 
@@ -93,25 +145,9 @@ async function listar() {
   verificarAlertas(pacientes);
 }
 
-// 🔥 EDITAR
-async function editar(id, nomeAtual, feitoAtual, proximoAtual) {
-  const novoNome = prompt("Nome:", nomeAtual);
-  const novoFeito = prompt("O que foi feito:", feitoAtual);
-  const novoProximo = prompt("Próximo passo:", proximoAtual);
-
-  if (!novoNome) return;
-
-  await updateDoc(doc(db, "pacientes", id), {
-    nome: novoNome,
-    feito: novoFeito,
-    proximo: novoProximo
-  });
-
-  listar();
-}
-
+// ❌ EXCLUIR
 async function excluir(id) {
-  await deleteDoc(doc(db, "pacientes", id));
+  await deleteDoc(doc(db, "atendimentos", id));
   listar();
 }
 
@@ -152,9 +188,10 @@ function filtrar() {
   }
 }
 
+window.salvarPaciente = salvarPaciente;
 window.salvar = salvar;
 window.excluir = excluir;
-window.editar = editar;
 window.filtrar = filtrar;
 
+listarPacientes();
 listar();
