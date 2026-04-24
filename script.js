@@ -98,3 +98,20 @@ window.salvar = salvar;
 window.excluir = excluir;
 
 listar();
+function filtrar() {
+  const busca = document.getElementById("busca").value.toLowerCase();
+  const lista = document.getElementById("lista");
+  const pacientes = lista.getElementsByTagName("li");
+
+  for (let i = 0; i < pacientes.length; i++) {
+    const nome = pacientes[i].innerText.toLowerCase();
+
+    if (nome.includes(busca)) {
+      pacientes[i].style.display = "";
+    } else {
+      pacientes[i].style.display = "none";
+    }
+  }
+}
+
+window.filtrar = filtrar;
