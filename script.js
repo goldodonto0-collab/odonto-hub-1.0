@@ -3,7 +3,9 @@ import {
   getFirestore,
   addDoc,
   collection,
-  getDocs
+  getDocs,
+  deleteDoc,
+  doc
 } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -32,7 +34,8 @@ async function salvar() {
   await addDoc(collection(db, "pacientes"), {
     nome: nome,
     feito: feito,
-    proximo: proximo
+    proximo: proximo,
+    data: new Date().toLocaleDateString()
   });
 
   document.getElementById("nome").value = "";
@@ -50,30 +53,36 @@ async function listar() {
 
   const pacientes = {};
 
- querySnapshot.forEach((doc) => {
-  const data = doc.data();
-  const id = doc.id;
-    
+  // 🔥 Primeiro: organizar os dados
+  querySnapshot.forEach((docItem) => {
+    const data = docItem.data();
+    const id = docItem.id;
+
     if (!pacientes[data.nome]) {
       pacientes[data.nome] = [];
     }
 
-  pacientes[data.nome].push({
-  ...data,
-  id
-});
+    pacientes[data.nome].push({
+      ...data,
+      id
+    });
+  });
+
+  // 🔥 Depois: montar a tela
   for (let nome in pacientes) {
     const li = document.createElement("li");
     li.innerHTML = `<strong>${nome}</strong>`;
-    
+
     const subLista = document.createElement("ul");
 
     pacientes[nome].forEach((item) => {
       const subLi = document.createElement("li");
-     subLi.innerHTML = `
-  ${item.feito} | ${item.proximo} | ${item.data}
-  <button onclick="excluir('${item.id}')">Excluir</button>
-`;
+
+      subLi.innerHTML = `
+        ${item.feito} | ${item.proximo} | ${item.data || ""}
+        <button onclick="excluir('${item.id}')">Excluir</button>
+      `;
+
       subLista.appendChild(subLi);
     });
 
@@ -82,13 +91,12 @@ async function listar() {
   }
 }
 
-window.salvar = salvar;
-listar();
-import { deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
-
 async function excluir(id) {
   await deleteDoc(doc(db, "pacientes", id));
   listar();
 }
 
+window.salvar = salvar;
 window.excluir = excluir;
+
+listar();
