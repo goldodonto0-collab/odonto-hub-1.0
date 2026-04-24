@@ -1,136 +1,248 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8">
-<title>Odonto Hub</title>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+import {
+  getFirestore,
+  addDoc,
+  collection,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc
+} from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
-<style>
-body {
-  font-family: Arial;
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-  margin: 0;
-  padding: 20px;
+const firebaseConfig = {
+  apiKey: "SUA_API_KEY",
+  authDomain: "agenda-paciente.firebaseapp.com",
+  projectId: "agenda-paciente",
+  storageBucket: "agenda-paciente.appspot.com",
+  messagingSenderId: "159249022645",
+  appId: "1:159249022645:web:08b5fe64f2f0db4c9708fc"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let pacientesMap = {};
+
+
+// 🔁 ABAS
+function mostrarAba(aba) {
+  document.getElementById("abaPacientes").style.display = "none";
+  document.getElementById("abaAtendimentos").style.display = "none";
+
+  if (aba === "pacientes") {
+    document.getElementById("abaPacientes").style.display = "block";
+  } else {
+    document.getElementById("abaAtendimentos").style.display = "block";
+  }
 }
 
-.container {
-  max-width: 600px;
-  margin: auto;
-  background: white;
-  padding: 20px;
-  border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+
+// 👤 SALVAR PACIENTE
+async function salvarPaciente() {
+  const nome = document.getElementById("nomePaciente").value;
+  const telefone = document.getElementById("telefonePaciente").value;
+
+  if (!nome.trim()) {
+    alert("Digite o nome!");
+    return;
+  }
+
+  await addDoc(collection(db, "pacientes"), {
+    nome,
+    telefone
+  });
+
+  document.getElementById("nomePaciente").value = "";
+  document.getElementById("telefonePaciente").value = "";
+
+  listarPacientes();
 }
 
-h1 {
-  text-align: center;
-  color: #333;
+
+// 📋 LISTAR PACIENTES + EDITAR + EXCLUIR
+async function listarPacientes() {
+  const lista = document.getElementById("listaPacientes");
+  lista.innerHTML = "";
+
+  const querySnapshot = await getDocs(collection(db, "pacientes"));
+
+  pacientesMap = {};
+
+  querySnapshot.forEach((docItem) => {
+    const data = docItem.data();
+    const id = docItem.id;
+
+    pacientesMap[data.nome] = id;
+
+    const li = document.createElement("li");
+
+    li.innerHTML = `
+      <strong>${data.nome}</strong>
+      ${data.telefone || ""}
+      <br>
+      <button onclick="editarPaciente('${id}', '${data.nome}', '${data.telefone || ""}')">Editar</button>
+      <button onclick="excluirPaciente('${id}')">Excluir</button>
+    `;
+
+    lista.appendChild(li);
+  });
 }
 
-h2 {
-  color: #555;
-  margin-top: 20px;
+
+// ✏️ EDITAR PACIENTE
+async function editarPaciente(id, nomeAtual, telefoneAtual) {
+  const novoNome = prompt("Nome:", nomeAtual);
+  const novoTelefone = prompt("Telefone:", telefoneAtual);
+
+  if (!novoNome) return;
+
+  await updateDoc(doc(db, "pacientes", id), {
+    nome: novoNome,
+    telefone: novoTelefone
+  });
+
+  listarPacientes();
 }
 
-input {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 14px;
+
+// ❌ EXCLUIR PACIENTE
+async function excluirPaciente(id) {
+  if (!confirm("Excluir paciente?")) return;
+
+  await deleteDoc(doc(db, "pacientes", id));
+  listarPacientes();
 }
 
-button {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  background: #4facfe;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-  transition: 0.3s;
+
+// 📝 SALVAR ATENDIMENTO
+async function salvar() {
+  const nome = document.getElementById("nome").value;
+  const feito = document.getElementById("feito").value;
+  const proximo = document.getElementById("proximo").value;
+
+  const pacienteId = pacientesMap[nome];
+
+  if (!pacienteId) {
+    alert("Paciente não cadastrado!");
+    return;
+  }
+
+  await addDoc(collection(db, "atendimentos"), {
+    pacienteId,
+    nome,
+    feito,
+    proximo,
+    data: new Date().toLocaleDateString()
+  });
+
+  listar();
 }
 
-button:hover {
-  background: #007bff;
+
+// 📄 LISTAR ATENDIMENTOS
+async function listar() {
+  const lista = document.getElementById("lista");
+  lista.innerHTML = "";
+
+  const querySnapshot = await getDocs(collection(db, "atendimentos"));
+
+  const pacientes = {};
+
+  querySnapshot.forEach((docItem) => {
+    const data = docItem.data();
+    const id = docItem.id;
+
+    if (!pacientes[data.nome]) {
+      pacientes[data.nome] = [];
+    }
+
+    pacientes[data.nome].push({
+      ...data,
+      id
+    });
+  });
+
+  for (let nome in pacientes) {
+    const li = document.createElement("li");
+    li.innerHTML = `<strong>${nome}</strong>`;
+
+    const subLista = document.createElement("ul");
+
+    pacientes[nome].forEach((item) => {
+      const subLi = document.createElement("li");
+
+      subLi.innerHTML = `
+        ${item.feito} | ${item.proximo} | ${item.data}
+        <button onclick="excluir('${item.id}')">Excluir</button>
+      `;
+
+      subLista.appendChild(subLi);
+    });
+
+    li.appendChild(subLista);
+    lista.appendChild(li);
+  }
+
+  verificarAlertas(pacientes);
 }
 
-ul {
-  list-style: none;
-  padding: 0;
+
+// ❌ EXCLUIR ATENDIMENTO
+async function excluir(id) {
+  await deleteDoc(doc(db, "atendimentos", id));
+  listar();
 }
 
-li {
-  background: #f7f9fc;
-  margin-bottom: 10px;
-  padding: 12px;
-  border-radius: 8px;
+
+// 🔔 ALERTA
+function verificarAlertas(pacientes) {
+  const listaAlertas = document.getElementById("alertas");
+  if (!listaAlertas) return;
+
+  listaAlertas.innerHTML = "";
+
+  for (let nome in pacientes) {
+    pacientes[nome].forEach((item) => {
+      const texto = (item.proximo || "").toLowerCase();
+
+      if (
+        texto.includes("retorno") ||
+        texto.includes("hoje") ||
+        texto.includes("amanhã")
+      ) {
+        const li = document.createElement("li");
+        li.classList.add("alerta");
+        li.textContent = `${nome} - ${item.proximo}`;
+        listaAlertas.appendChild(li);
+      }
+    });
+  }
 }
 
-strong {
-  color: #007bff;
-  display: block;
-  margin-bottom: 5px;
+
+// 🔍 BUSCA
+function filtrar() {
+  const busca = document.getElementById("busca").value.toLowerCase();
+  const lista = document.getElementById("lista");
+  const pacientes = lista.getElementsByTagName("li");
+
+  for (let i = 0; i < pacientes.length; i++) {
+    const nome = pacientes[i].innerText.toLowerCase();
+    pacientes[i].style.display = nome.includes(busca) ? "" : "none";
+  }
 }
 
-button[onclick^="excluir"] {
-  margin-top: 5px;
-  background: #ff4d4d;
-}
 
-button[onclick^="excluir"]:hover {
-  background: #cc0000;
-}
+// 🌐 GLOBAL
+window.salvarPaciente = salvarPaciente;
+window.salvar = salvar;
+window.excluir = excluir;
+window.filtrar = filtrar;
+window.mostrarAba = mostrarAba;
+window.editarPaciente = editarPaciente;
+window.excluirPaciente = excluirPaciente;
 
-.alerta {
-  background: #ffe5e5;
-  border-left: 5px solid red;
-}
-</style>
 
-</head>
-
-<body>
-
-<div class="container">
-
-<h1>🦷 Odonto Hub</h1>
-
-<!-- 🔥 CADASTRO DE PACIENTE -->
-<h2>👤 Cadastrar Paciente</h2>
-
-<input id="nomePaciente" placeholder="Nome do paciente">
-<input id="telefonePaciente" placeholder="Telefone">
-
-<button onclick="salvarPaciente()">Salvar Paciente</button>
-
-<h2>📋 Pacientes</h2>
-<ul id="listaPacientes"></ul>
-
-<!-- 🔥 ATENDIMENTO -->
-<h2>📝 Novo Atendimento</h2>
-
-<input id="nome" placeholder="Nome do paciente">
-<input id="feito" placeholder="Procedimento realizado">
-<input id="proximo" placeholder="Próximo passo">
-
-<button onclick="salvar()">Salvar Atendimento</button>
-
-<h2>Buscar paciente</h2>
-<input id="busca" placeholder="Digite o nome" oninput="filtrar()">
-
-<!-- 🔥 ALERTAS -->
-<h2>⚠️ Retornos</h2>
-<ul id="alertas"></ul>
-
-<!-- 🔥 REGISTROS -->
-<h2>Registros</h2>
-<ul id="lista"></ul>
-
-</div>
-
-<script type="module" src="script.js"></script>
-
-</body>
-</html>
+// 🚀 INICIAR
+listarPacientes();
+listar();
