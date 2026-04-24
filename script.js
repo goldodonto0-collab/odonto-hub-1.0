@@ -53,6 +53,7 @@ async function listar() {
 
   const pacientes = {};
 
+  // 🔹 Organizar dados
   querySnapshot.forEach((docItem) => {
     const data = docItem.data();
     const id = docItem.id;
@@ -67,6 +68,7 @@ async function listar() {
     });
   });
 
+  // 🔹 Montar lista
   for (let nome in pacientes) {
     const li = document.createElement("li");
     li.innerHTML = `<strong>${nome}</strong>`;
@@ -87,6 +89,9 @@ async function listar() {
     li.appendChild(subLista);
     lista.appendChild(li);
   }
+
+  // 🔥 CHAMAR ALERTA
+  verificarAlertas(pacientes);
 }
 
 async function excluir(id) {
@@ -94,10 +99,32 @@ async function excluir(id) {
   listar();
 }
 
-window.salvar = salvar;
-window.excluir = excluir;
+// 🔥 FUNÇÃO DE ALERTA
+function verificarAlertas(pacientes) {
+  const listaAlertas = document.getElementById("alertas");
+  if (!listaAlertas) return;
 
-listar();
+  listaAlertas.innerHTML = "";
+
+  for (let nome in pacientes) {
+    pacientes[nome].forEach((item) => {
+      const texto = (item.proximo || "").toLowerCase();
+
+      if (
+        texto.includes("retorno") ||
+        texto.includes("hoje") ||
+        texto.includes("amanhã")
+      ) {
+        const li = document.createElement("li");
+        li.classList.add("alerta");
+        li.textContent = `${nome} - ${item.proximo}`;
+        listaAlertas.appendChild(li);
+      }
+    });
+  }
+}
+
+// 🔍 BUSCA
 function filtrar() {
   const busca = document.getElementById("busca").value.toLowerCase();
   const lista = document.getElementById("lista");
@@ -106,12 +133,12 @@ function filtrar() {
   for (let i = 0; i < pacientes.length; i++) {
     const nome = pacientes[i].innerText.toLowerCase();
 
-    if (nome.includes(busca)) {
-      pacientes[i].style.display = "";
-    } else {
-      pacientes[i].style.display = "none";
-    }
+    pacientes[i].style.display = nome.includes(busca) ? "" : "none";
   }
 }
 
+window.salvar = salvar;
+window.excluir = excluir;
 window.filtrar = filtrar;
+
+listar();
