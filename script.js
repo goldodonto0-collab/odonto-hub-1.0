@@ -53,8 +53,14 @@ async function salvarPaciente() {
 
 async function listarPacientes() {
   const lista = document.getElementById("listaPacientes");
+  const selectPaciente = document.getElementById("nome");
+
   lista.innerHTML = "";
   pacientesMap = {};
+
+  if (selectPaciente) {
+    selectPaciente.innerHTML = `<option value="">Selecione o paciente</option>`;
+  }
 
   const querySnapshot = await getDocs(collection(db, "pacientes"));
 
@@ -75,8 +81,14 @@ async function listarPacientes() {
       <button onclick="editarPaciente('${id}')">Editar</button>
       <button onclick="excluirPaciente('${id}')">Excluir</button>
     `;
-
     lista.appendChild(li);
+
+    if (selectPaciente) {
+      const option = document.createElement("option");
+      option.value = data.nome;
+      option.textContent = data.nome;
+      selectPaciente.appendChild(option);
+    }
   });
 }
 
@@ -100,7 +112,6 @@ async function editarPaciente(id) {
 
 async function excluirPaciente(id) {
   if (!confirm("Deseja excluir este paciente?")) return;
-
   await deleteDoc(doc(db, "pacientes", id));
   listarPacientes();
 }
@@ -122,24 +133,24 @@ async function verFicha(idPaciente) {
 
   atendimentosSnapshot.forEach((docItem) => {
     const item = docItem.data();
-
     if (item.pacienteId === idPaciente) {
       historico.push(item);
     }
   });
 
   let html = `
-    <h2>Ficha do Paciente</h2>
-    <p><strong>Nome:</strong> ${paciente.nome || ""}</p>
-    <p><strong>Telefone:</strong> ${paciente.telefone || ""}</p>
-    <p><strong>CPF:</strong> ${paciente.cpf || ""}</p>
-    <p><strong>RG:</strong> ${paciente.rg || ""}</p>
-    <p><strong>Nascimento:</strong> ${paciente.nascimento || ""}</p>
-    <p><strong>Endereço:</strong> ${paciente.endereco || ""}</p>
-    <p><strong>Saúde:</strong> ${paciente.saude || ""}</p>
-    <p><strong>Observações:</strong> ${paciente.observacoes || ""}</p>
+    <div id="fichaPdf">
+      <h2>Ficha do Paciente</h2>
+      <p><strong>Nome:</strong> ${paciente.nome || ""}</p>
+      <p><strong>Telefone:</strong> ${paciente.telefone || ""}</p>
+      <p><strong>CPF:</strong> ${paciente.cpf || ""}</p>
+      <p><strong>RG:</strong> ${paciente.rg || ""}</p>
+      <p><strong>Nascimento:</strong> ${paciente.nascimento || ""}</p>
+      <p><strong>Endereço:</strong> ${paciente.endereco || ""}</p>
+      <p><strong>Saúde:</strong> ${paciente.saude || ""}</p>
+      <p><strong>Observações:</strong> ${paciente.observacoes || ""}</p>
 
-    <h3>Histórico de atendimentos</h3>
+      <h3>Histórico de atendimentos</h3>
   `;
 
   if (historico.length === 0) {
@@ -155,8 +166,19 @@ async function verFicha(idPaciente) {
     `;
   });
 
+  html += `
+      </div>
+      <button onclick="gerarPDF()">Gerar PDF</button>
+  `;
+
   document.getElementById("conteudoFicha").innerHTML = html;
   document.getElementById("modalFicha").style.display = "flex";
+}
+
+function gerarPDF() {
+  const elemento = document.getElementById("fichaPdf");
+
+  html2pdf().from(elemento).save("ficha-paciente.pdf");
 }
 
 function fecharFicha() {
@@ -173,7 +195,7 @@ async function salvar() {
   const pacienteId = pacientesMap[nome];
 
   if (!pacienteId) {
-    alert("Paciente não cadastrado!");
+    alert("Paciente não selecionado!");
     return;
   }
 
@@ -203,14 +225,8 @@ async function listar() {
     const data = docItem.data();
     const id = docItem.id;
 
-    if (!pacientes[data.nome]) {
-      pacientes[data.nome] = [];
-    }
-
-    pacientes[data.nome].push({
-      ...data,
-      id
-    });
+    if (!pacientes[data.nome]) pacientes[data.nome] = [];
+    pacientes[data.nome].push({ ...data, id });
   });
 
   for (let nome in pacientes) {
@@ -250,11 +266,7 @@ function verificarAlertas(pacientes) {
     pacientes[nome].forEach((item) => {
       const texto = (item.proximo || "").toLowerCase();
 
-      if (
-        texto.includes("retorno") ||
-        texto.includes("hoje") ||
-        texto.includes("amanhã")
-      ) {
+      if (texto.includes("retorno") || texto.includes("hoje") || texto.includes("amanhã")) {
         const li = document.createElement("li");
         li.classList.add("alerta");
         li.textContent = `${nome} - ${item.proximo}`;
@@ -290,7 +302,6 @@ async function carregarCalendario() {
 
     if (data.proximo && data.proximo.trim() !== "") {
       const partes = data.proximo.split("/");
-
       let dataObj = null;
 
       if (partes.length === 3) {
@@ -306,21 +317,15 @@ async function carregarCalendario() {
     }
   });
 
-  retornos.sort((a, b) => {
-    if (!a.dataObj) return 1;
-    if (!b.dataObj) return -1;
-    return a.dataObj - b.dataObj;
-  });
+  retornos.sort((a, b) => a.dataObj - b.dataObj);
 
   retornos.forEach((item) => {
     const li = document.createElement("li");
-
     li.innerHTML = `
       <strong>${item.nome}</strong><br>
       Procedimento: ${item.feito}<br>
       Retorno: ${item.proximo}
     `;
-
     lista.appendChild(li);
   });
 }
@@ -339,7 +344,7 @@ function mostrarAba(aba) {
   }
 }
 
-// ==================== WINDOW ====================
+// ==================== GLOBAL ====================
 
 window.salvarPaciente = salvarPaciente;
 window.salvar = salvar;
@@ -347,10 +352,11 @@ window.excluir = excluir;
 window.filtrar = filtrar;
 window.editarPaciente = editarPaciente;
 window.excluirPaciente = excluirPaciente;
-window.mostrarAba = mostrarAba;
 window.verFicha = verFicha;
 window.fecharFicha = fecharFicha;
+window.gerarPDF = gerarPDF;
 window.carregarCalendario = carregarCalendario;
+window.mostrarAba = mostrarAba;
 
 listarPacientes();
 listar();
