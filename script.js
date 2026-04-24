@@ -5,7 +5,8 @@ import {
   collection,
   getDocs,
   deleteDoc,
-  doc
+  doc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -53,7 +54,6 @@ async function listar() {
 
   const pacientes = {};
 
-  // 🔹 Organizar dados
   querySnapshot.forEach((docItem) => {
     const data = docItem.data();
     const id = docItem.id;
@@ -68,7 +68,6 @@ async function listar() {
     });
   });
 
-  // 🔹 Montar lista
   for (let nome in pacientes) {
     const li = document.createElement("li");
     li.innerHTML = `<strong>${nome}</strong>`;
@@ -80,6 +79,7 @@ async function listar() {
 
       subLi.innerHTML = `
         ${item.feito} | ${item.proximo} | ${item.data || ""}
+        <button onclick="editar('${item.id}', '${item.nome}', '${item.feito}', '${item.proximo}')">Editar</button>
         <button onclick="excluir('${item.id}')">Excluir</button>
       `;
 
@@ -90,8 +90,24 @@ async function listar() {
     lista.appendChild(li);
   }
 
-  // 🔥 CHAMAR ALERTA
   verificarAlertas(pacientes);
+}
+
+// 🔥 EDITAR
+async function editar(id, nomeAtual, feitoAtual, proximoAtual) {
+  const novoNome = prompt("Nome:", nomeAtual);
+  const novoFeito = prompt("O que foi feito:", feitoAtual);
+  const novoProximo = prompt("Próximo passo:", proximoAtual);
+
+  if (!novoNome) return;
+
+  await updateDoc(doc(db, "pacientes", id), {
+    nome: novoNome,
+    feito: novoFeito,
+    proximo: novoProximo
+  });
+
+  listar();
 }
 
 async function excluir(id) {
@@ -99,7 +115,7 @@ async function excluir(id) {
   listar();
 }
 
-// 🔥 FUNÇÃO DE ALERTA
+// 🔔 ALERTA
 function verificarAlertas(pacientes) {
   const listaAlertas = document.getElementById("alertas");
   if (!listaAlertas) return;
@@ -132,13 +148,13 @@ function filtrar() {
 
   for (let i = 0; i < pacientes.length; i++) {
     const nome = pacientes[i].innerText.toLowerCase();
-
     pacientes[i].style.display = nome.includes(busca) ? "" : "none";
   }
 }
 
 window.salvar = salvar;
 window.excluir = excluir;
+window.editar = editar;
 window.filtrar = filtrar;
 
 listar();
