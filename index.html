@@ -14,6 +14,7 @@
     <div class="tabs">
       <button onclick="mostrarAba('pacientes')">Pacientes</button>
       <button onclick="mostrarAba('atendimentos')">Atendimentos</button>
+      <button onclick="mostrarAba('calendario')">Calendário</button>
     </div>
 
     <!-- ABA PACIENTES -->
@@ -63,6 +64,14 @@
       <div class="card">
         <h3>Histórico de atendimentos</h3>
         <ul id="lista"></ul>
+      </div>
+    </section>
+
+    <!-- ABA CALENDÁRIO -->
+    <section id="calendario" class="aba" style="display:none;">
+      <div class="card">
+        <h2>Calendário de Retornos</h2>
+        <ul id="listaCalendario"></ul>
       </div>
     </section>
   </div>
