@@ -1,136 +1,52 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Odonto Hub</title>
-
-<style>
-body {
-  font-family: Arial;
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-  margin: 0;
-  padding: 20px;
-}
-
-.container {
-  max-width: 600px;
-  margin: auto;
-  background: white;
-  padding: 20px;
-  border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-}
-
-h1 {
-  text-align: center;
-  color: #333;
-}
-
-h2 {
-  color: #555;
-  margin-top: 20px;
-}
-
-input {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 14px;
-}
-
-button {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  background: #4facfe;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-button:hover {
-  background: #007bff;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-li {
-  background: #f7f9fc;
-  margin-bottom: 10px;
-  padding: 12px;
-  border-radius: 8px;
-}
-
-strong {
-  color: #007bff;
-  display: block;
-  margin-bottom: 5px;
-}
-
-button[onclick^="excluir"] {
-  margin-top: 5px;
-  background: #ff4d4d;
-}
-
-button[onclick^="excluir"]:hover {
-  background: #cc0000;
-}
-
-.alerta {
-  background: #ffe5e5;
-  border-left: 5px solid red;
-}
-</style>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Odonto Hub</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<div class="container">
+  <h1>Odonto Hub</h1>
 
-<h1>🦷 Odonto Hub</h1>
+  <!-- ABAS -->
+  <div class="tabs">
+    <button onclick="mostrarAba('pacientes')">Pacientes</button>
+    <button onclick="mostrarAba('atendimentos')">Atendimentos</button>
+  </div>
 
-<!-- 🔥 CADASTRO DE PACIENTE -->
-<h2>👤 Cadastrar Paciente</h2>
+  <!-- ABA PACIENTES -->
+  <div id="pacientes" class="aba">
+    <h2>Cadastro de Pacientes</h2>
 
-<input id="nomePaciente" placeholder="Nome do paciente">
-<input id="telefonePaciente" placeholder="Telefone">
+    <input id="nomePaciente" type="text" placeholder="Nome do paciente">
+    <input id="telefonePaciente" type="text" placeholder="Telefone">
+    <button onclick="salvarPaciente()">Salvar Paciente</button>
 
-<button onclick="salvarPaciente()">Salvar Paciente</button>
+    <h3>Pacientes cadastrados</h3>
+    <ul id="listaPacientes"></ul>
+  </div>
 
-<h2>📋 Pacientes</h2>
-<ul id="listaPacientes"></ul>
+  <!-- ABA ATENDIMENTOS -->
+  <div id="atendimentos" class="aba" style="display:none;">
+    <h2>Atendimentos</h2>
 
-<!-- 🔥 ATENDIMENTO -->
-<h2>📝 Novo Atendimento</h2>
+    <input id="nome" type="text" placeholder="Nome do paciente">
+    <input id="feito" type="text" placeholder="Procedimento realizado">
+    <input id="proximo" type="text" placeholder="Próximo retorno">
+    <button onclick="salvar()">Salvar Atendimento</button>
 
-<input id="nome" placeholder="Nome do paciente">
-<input id="feito" placeholder="Procedimento realizado">
-<input id="proximo" placeholder="Próximo passo">
+    <h3>Buscar paciente</h3>
+    <input id="busca" type="text" placeholder="Digite o nome" onkeyup="filtrar()">
 
-<button onclick="salvar()">Salvar Atendimento</button>
+    <h3>Alertas</h3>
+    <ul id="alertas"></ul>
 
-<h2>Buscar paciente</h2>
-<input id="busca" placeholder="Digite o nome" oninput="filtrar()">
+    <h3>Histórico</h3>
+    <ul id="lista"></ul>
+  </div>
 
-<!-- 🔥 ALERTAS -->
-<h2>⚠️ Retornos</h2>
-<ul id="alertas"></ul>
-
-<!-- 🔥 REGISTROS -->
-<h2>Registros</h2>
-<ul id="lista"></ul>
-
-</div>
-
-<script type="module" src="script.js"></script>
-
+  <script type="module" src="script.js"></script>
 </body>
 </html>
