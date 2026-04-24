@@ -11,10 +11,11 @@
   <div class="container">
     <h1>Odonto Hub</h1>
 
+    <!-- MENU -->
     <div class="tabs">
-      <button onclick="mostrarAba('pacientes')">Pacientes</button>
-      <button onclick="mostrarAba('atendimentos')">Atendimentos</button>
-      <button onclick="mostrarAba('calendario')">Calendário</button>
+      <button type="button" onclick="mostrarAba('pacientes')">Pacientes</button>
+      <button type="button" onclick="mostrarAba('atendimentos')">Atendimentos</button>
+      <button type="button" onclick="mostrarAba('calendario')">Calendário</button>
     </div>
 
     <!-- PACIENTES -->
@@ -22,7 +23,7 @@
       <div class="card">
         <h2>Cadastro de Pacientes</h2>
 
-        <input id="nomePaciente" type="text" placeholder="Nome">
+        <input id="nomePaciente" type="text" placeholder="Nome do paciente">
         <input id="telefonePaciente" type="text" placeholder="Telefone">
         <input id="cpfPaciente" type="text" placeholder="CPF">
         <input id="rgPaciente" type="text" placeholder="RG">
@@ -31,7 +32,7 @@
         <input id="saudePaciente" type="text" placeholder="Problema de saúde">
         <textarea id="observacoesPaciente" placeholder="Observações"></textarea>
 
-        <button onclick="salvarPaciente()">Salvar Paciente</button>
+        <button type="button" onclick="salvarPaciente()">Salvar Paciente</button>
       </div>
 
       <div class="card">
@@ -52,16 +53,16 @@
         <input id="feito" type="text" placeholder="Procedimento realizado">
         <input id="proximo" type="text" placeholder="Próximo retorno">
 
-        <button onclick="salvar()">Salvar Atendimento</button>
+        <button type="button" onclick="salvar()">Salvar Atendimento</button>
       </div>
 
       <div class="card">
-        <h3>Buscar</h3>
-        <input id="busca" type="text" onkeyup="filtrar()" placeholder="Buscar paciente">
+        <h3>Buscar paciente</h3>
+        <input id="busca" type="text" placeholder="Digite o nome" onkeyup="filtrar()">
       </div>
 
       <div class="card">
-        <h3>Histórico</h3>
+        <h3>Histórico de atendimentos</h3>
         <ul id="lista"></ul>
       </div>
     </section>
@@ -75,7 +76,7 @@
     </section>
   </div>
 
-  <!-- MODAL -->
+  <!-- MODAL DA FICHA -->
   <div id="modalFicha" class="modal" style="display:none;">
     <div class="modal-conteudo">
       <span class="fechar" onclick="fecharFicha()">×</span>
@@ -83,10 +84,10 @@
     </div>
   </div>
 
-  <!-- PDF -->
+  <!-- BIBLIOTECA PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-  <!-- SCRIPT -->
+  <!-- SCRIPT PRINCIPAL -->
   <script type="module" src="script.js"></script>
 
 </body>
