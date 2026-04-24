@@ -21,7 +21,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let pacientesMap = {}; // 🔥 guardar ids
+let pacientesMap = {};
 
 // 👤 SALVAR PACIENTE
 async function salvarPaciente() {
@@ -50,7 +50,6 @@ async function listarPacientes() {
   lista.innerHTML = "";
 
   const querySnapshot = await getDocs(collection(db, "pacientes"));
-
   pacientesMap = {};
 
   querySnapshot.forEach((docItem) => {
@@ -60,12 +59,42 @@ async function listarPacientes() {
     pacientesMap[data.nome] = id;
 
     const li = document.createElement("li");
-    li.textContent = `${data.nome} - ${data.telefone || ""}`;
+
+    li.innerHTML = `
+      ${data.nome} - ${data.telefone || ""}
+      <button onclick="editarPaciente('${id}', '${data.nome}', '${data.telefone || ""}')">Editar</button>
+      <button onclick="excluirPaciente('${id}')">Excluir</button>
+    `;
+
     lista.appendChild(li);
   });
 }
 
-// 📝 SALVAR ATENDIMENTO (AGORA CORRETO)
+// ✏️ EDITAR PACIENTE
+async function editarPaciente(id, nomeAtual, telefoneAtual) {
+  const novoNome = prompt("Editar nome:", nomeAtual);
+  const novoTelefone = prompt("Editar telefone:", telefoneAtual);
+
+  if (!novoNome) return;
+
+  await updateDoc(doc(db, "pacientes", id), {
+    nome: novoNome,
+    telefone: novoTelefone
+  });
+
+  listarPacientes();
+}
+
+// ❌ EXCLUIR PACIENTE
+async function excluirPaciente(id) {
+  const confirmar = confirm("Deseja excluir este paciente?");
+  if (!confirmar) return;
+
+  await deleteDoc(doc(db, "pacientes", id));
+  listarPacientes();
+}
+
+// 📝 SALVAR ATENDIMENTO
 async function salvar() {
   const nome = document.getElementById("nome").value;
   const feito = document.getElementById("feito").value;
@@ -104,7 +133,6 @@ async function listar() {
   lista.innerHTML = "";
 
   const querySnapshot = await getDocs(collection(db, "atendimentos"));
-
   const pacientes = {};
 
   querySnapshot.forEach((docItem) => {
@@ -145,7 +173,7 @@ async function listar() {
   verificarAlertas(pacientes);
 }
 
-// ❌ EXCLUIR
+// ❌ EXCLUIR ATENDIMENTO
 async function excluir(id) {
   await deleteDoc(doc(db, "atendimentos", id));
   listar();
@@ -192,6 +220,8 @@ window.salvarPaciente = salvarPaciente;
 window.salvar = salvar;
 window.excluir = excluir;
 window.filtrar = filtrar;
+window.editarPaciente = editarPaciente;
+window.excluirPaciente = excluirPaciente;
 
 listarPacientes();
 listar();
