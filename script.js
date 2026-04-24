@@ -163,7 +163,48 @@ async function verFicha(idPaciente) {
 }
 
 function gerarPDF() {
-  const elemento = document.getElementById("fichaPdf");
+  const fichaOriginal = document.getElementById("fichaPdf");
+
+  if (!fichaOriginal) {
+    alert("Nenhuma ficha encontrada.");
+    return;
+  }
+
+  const copia = fichaOriginal.cloneNode(true);
+
+  copia.style.position = "absolute";
+  copia.style.left = "-9999px";
+  copia.style.top = "0";
+  copia.style.display = "block";
+  copia.style.background = "#fff";
+  copia.style.padding = "20px";
+  copia.style.width = "800px";
+
+  document.body.appendChild(copia);
+
+  const opcoes = {
+    margin: 10,
+    filename: "ficha-paciente.pdf",
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true
+    },
+    jsPDF: {
+      unit: "mm",
+      format: "a4",
+      orientation: "portrait"
+    }
+  };
+
+  html2pdf()
+    .set(opcoes)
+    .from(copia)
+    .save()
+    .then(() => {
+      document.body.removeChild(copia);
+    });
+}
 
   if (!elemento) {
     alert("Nenhuma ficha encontrada.");
