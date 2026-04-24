@@ -48,12 +48,33 @@ async function listar() {
 
   const querySnapshot = await getDocs(collection(db, "pacientes"));
 
-  querySnapshot.forEach((documento) => {
-    const dados = documento.data();
-    const li = document.createElement("li");
-    li.textContent = `${dados.nome} | ${dados.feito} | ${dados.proximo}`;
-    lista.appendChild(li);
+  const pacientes = {};
+
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    
+    if (!pacientes[data.nome]) {
+      pacientes[data.nome] = [];
+    }
+
+    pacientes[data.nome].push(data);
   });
+
+  for (let nome in pacientes) {
+    const li = document.createElement("li");
+    li.innerHTML = `<strong>${nome}</strong>`;
+    
+    const subLista = document.createElement("ul");
+
+    pacientes[nome].forEach((item) => {
+      const subLi = document.createElement("li");
+      subLi.textContent = `${item.feito} | ${item.proximo} | ${item.data}`;
+      subLista.appendChild(subLi);
+    });
+
+    li.appendChild(subLista);
+    lista.appendChild(li);
+  }
 }
 
 window.salvar = salvar;
