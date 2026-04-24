@@ -69,7 +69,9 @@ async function listarPacientes() {
       <strong>${data.nome}</strong><br>
       Telefone: ${data.telefone || ""}<br>
       CPF: ${data.cpf || ""}<br>
-      Saúde: ${data.saude || "Nenhuma"}<br>
+      Saúde: ${data.saude || "Nenhuma"}<br><br>
+
+      <button onclick="verFicha('${id}')">Ficha</button>
       <button onclick="editarPaciente('${id}')">Editar</button>
       <button onclick="excluirPaciente('${id}')">Excluir</button>
     `;
@@ -103,6 +105,61 @@ async function excluirPaciente(id) {
   listarPacientes();
 }
 
+// VER FICHA
+async function verFicha(idPaciente) {
+  const pacientesSnapshot = await getDocs(collection(db, "pacientes"));
+  const atendimentosSnapshot = await getDocs(collection(db, "atendimentos"));
+
+  let paciente = null;
+  let historico = [];
+
+  pacientesSnapshot.forEach((docItem) => {
+    if (docItem.id === idPaciente) {
+      paciente = docItem.data();
+    }
+  });
+
+  atendimentosSnapshot.forEach((docItem) => {
+    const item = docItem.data();
+    if (item.pacienteId === idPaciente) {
+      historico.push(item);
+    }
+  });
+
+  let html = `
+    <h2>Ficha do Paciente</h2>
+    <p><strong>Nome:</strong> ${paciente.nome || ""}</p>
+    <p><strong>Telefone:</strong> ${paciente.telefone || ""}</p>
+    <p><strong>CPF:</strong> ${paciente.cpf || ""}</p>
+    <p><strong>RG:</strong> ${paciente.rg || ""}</p>
+    <p><strong>Nascimento:</strong> ${paciente.nascimento || ""}</p>
+    <p><strong>Endereço:</strong> ${paciente.endereco || ""}</p>
+    <p><strong>Saúde:</strong> ${paciente.saude || ""}</p>
+    <p><strong>Observações:</strong> ${paciente.observacoes || ""}</p>
+    <h3>Histórico de atendimentos</h3>
+  `;
+
+  if (historico.length === 0) {
+    html += `<p>Nenhum atendimento registrado.</p>`;
+  }
+
+  historico.forEach((item) => {
+    html += `
+      <p><strong>Data:</strong> ${item.data}</p>
+      <p><strong>Procedimento:</strong> ${item.feito}</p>
+      <p><strong>Próximo retorno:</strong> ${item.proximo}</p>
+      <hr>
+    `;
+  });
+
+  document.getElementById("conteudoFicha").innerHTML = html;
+  document.getElementById("modalFicha").style.display = "flex";
+}
+
+function fecharFicha() {
+  document.getElementById("modalFicha").style.display = "none";
+}
+
 // SALVAR ATENDIMENTO
 async function salvar() {
   const nome = document.getElementById("nome").value;
@@ -110,6 +167,7 @@ async function salvar() {
   const proximo = document.getElementById("proximo").value;
 
   const pacienteId = pacientesMap[nome];
+
   if (!pacienteId) {
     alert("Paciente não cadastrado!");
     return;
@@ -182,7 +240,6 @@ function verificarAlertas(pacientes) {
   for (let nome in pacientes) {
     pacientes[nome].forEach(item => {
       const texto = (item.proximo || "").toLowerCase();
-
       if (texto.includes("retorno") || texto.includes("hoje") || texto.includes("amanhã")) {
         const li = document.createElement("li");
         li.classList.add("alerta");
@@ -215,6 +272,8 @@ window.filtrar = filtrar;
 window.editarPaciente = editarPaciente;
 window.excluirPaciente = excluirPaciente;
 window.mostrarAba = mostrarAba;
+window.verFicha = verFicha;
+window.fecharFicha = fecharFicha;
 
 listarPacientes();
 listar();
