@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Odonto Hub</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="favicon.ico">
 </head>
 <body>
 
@@ -46,7 +47,10 @@
       <div class="card">
         <h2>Novo Atendimento</h2>
 
-        <input id="nome" type="text" placeholder="Nome do paciente">
+        <select id="nome">
+          <option value="">Selecione o paciente</option>
+        </select>
+
         <input id="feito" type="text" placeholder="Procedimento realizado">
         <input id="proximo" type="text" placeholder="Próximo retorno (dd/mm/aaaa)">
 
@@ -78,7 +82,7 @@
     </section>
   </div>
 
-  <!-- MODAL FICHA -->
+  <!-- MODAL DA FICHA -->
   <div id="modalFicha" class="modal" style="display:none;">
     <div class="modal-conteudo">
       <span class="fechar" onclick="fecharFicha()">×</span>
@@ -86,6 +90,11 @@
     </div>
   </div>
 
+  <!-- BIBLIOTECA PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <!-- SCRIPT -->
   <script type="module" src="script.js"></script>
+
 </body>
 </html>
