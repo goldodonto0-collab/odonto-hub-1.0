@@ -22,93 +22,120 @@ const db = getFirestore(app);
 
 let pacientesMap = {};
 
-// PACIENTES
+// ================= PACIENTES =================
+
 async function salvarPaciente() {
   const paciente = {
-    nome: nomePaciente.value,
-    telefone: telefonePaciente.value,
-    cpf: cpfPaciente.value,
-    rg: rgPaciente.value,
-    nascimento: nascimentoPaciente.value,
-    endereco: enderecoPaciente.value,
-    saude: saudePaciente.value,
-    observacoes: observacoesPaciente.value
+    nome: document.getElementById("nomePaciente").value,
+    telefone: document.getElementById("telefonePaciente").value,
+    cpf: document.getElementById("cpfPaciente").value,
+    rg: document.getElementById("rgPaciente").value,
+    nascimento: document.getElementById("nascimentoPaciente").value,
+    endereco: document.getElementById("enderecoPaciente").value,
+    saude: document.getElementById("saudePaciente").value,
+    observacoes: document.getElementById("observacoesPaciente").value
   };
+
+  if (!paciente.nome.trim()) {
+    alert("Digite o nome do paciente.");
+    return;
+  }
 
   await addDoc(collection(db, "pacientes"), paciente);
 
-  document.querySelectorAll("#pacientes input, #pacientes textarea").forEach(c => c.value = "");
+  document.querySelectorAll("#pacientes input, #pacientes textarea").forEach(campo => {
+    campo.value = "";
+  });
 
   listarPacientes();
 }
 
 async function listarPacientes() {
-  listaPacientes.innerHTML = "";
-  nome.innerHTML = `<option value="">Selecione o paciente</option>`;
+  const lista = document.getElementById("listaPacientes");
+  const select = document.getElementById("nome");
+
+  lista.innerHTML = "";
   pacientesMap = {};
 
-  const dados = await getDocs(collection(db, "pacientes"));
+  if (select) {
+    select.innerHTML = `<option value="">Selecione o paciente</option>`;
+  }
 
-  dados.forEach(docItem => {
+  const querySnapshot = await getDocs(collection(db, "pacientes"));
+
+  querySnapshot.forEach((docItem) => {
     const data = docItem.data();
     const id = docItem.id;
 
     pacientesMap[data.nome] = id;
 
-    listaPacientes.innerHTML += `
-      <li>
-        <strong>${data.nome}</strong><br>
-        ${data.telefone || ""}
-        <br><br>
-        <button onclick="verFicha('${id}')">Ficha</button>
-        <button onclick="excluirPaciente('${id}')">Excluir</button>
-      </li>
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <strong>${data.nome}</strong><br>
+      ${data.telefone || ""}<br><br>
+
+      <button onclick="verFicha('${id}')">Ficha</button>
+      <button onclick="excluirPaciente('${id}')">Excluir</button>
     `;
 
-    nome.innerHTML += `<option value="${data.nome}">${data.nome}</option>`;
+    lista.appendChild(li);
+
+    if (select) {
+      const option = document.createElement("option");
+      option.value = data.nome;
+      option.textContent = data.nome;
+      select.appendChild(option);
+    }
   });
 }
 
 async function excluirPaciente(id) {
+  if (!confirm("Deseja excluir este paciente?")) return;
+
   await deleteDoc(doc(db, "pacientes", id));
   listarPacientes();
 }
 
-// FICHA
+// ================= FICHA =================
+
 async function verFicha(idPaciente) {
-  const pacientes = await getDocs(collection(db, "pacientes"));
-  const atendimentos = await getDocs(collection(db, "atendimentos"));
+  const pacientesSnapshot = await getDocs(collection(db, "pacientes"));
+  const atendimentosSnapshot = await getDocs(collection(db, "atendimentos"));
 
   let paciente = null;
   let historico = "";
 
-  pacientes.forEach(p => {
-    if (p.id === idPaciente) paciente = p.data();
+  pacientesSnapshot.forEach((docItem) => {
+    if (docItem.id === idPaciente) {
+      paciente = docItem.data();
+    }
   });
 
-  atendimentos.forEach(a => {
-    const item = a.data();
+  atendimentosSnapshot.forEach((docItem) => {
+    const item = docItem.data();
+
     if (item.pacienteId === idPaciente) {
       historico += `
-        <p><strong>Data:</strong> ${item.data}</p>
-        <p><strong>Procedimento:</strong> ${item.feito}</p>
-        <p><strong>Retorno:</strong> ${item.proximo}</p>
+        <p><strong>Data:</strong> ${item.data || ""}</p>
+        <p><strong>Procedimento:</strong> ${item.feito || ""}</p>
+        <p><strong>Retorno:</strong> ${item.proximo || ""}</p>
         <hr>
       `;
     }
   });
 
-  conteudoFicha.innerHTML = `
+  document.getElementById("conteudoFicha").innerHTML = `
     <div id="fichaPdf">
       <h2>Ficha do Paciente</h2>
-      <p><strong>Nome:</strong> ${paciente.nome || ""}</p>
-      <p><strong>Telefone:</strong> ${paciente.telefone || ""}</p>
-      <p><strong>CPF:</strong> ${paciente.cpf || ""}</p>
-      <p><strong>RG:</strong> ${paciente.rg || ""}</p>
-      <p><strong>Nascimento:</strong> ${paciente.nascimento || ""}</p>
-      <p><strong>Endereço:</strong> ${paciente.endereco || ""}</p>
-      <p><strong>Saúde:</strong> ${paciente.saude || ""}</p>
-      <p><strong>Observações:</strong> ${paciente.observacoes || ""}</p>
+
+      <p><strong>Nome:</strong> ${paciente?.nome || ""}</p>
+      <p><strong>Telefone:</strong> ${paciente?.telefone || ""}</p>
+      <p><strong>CPF:</strong> ${paciente?.cpf || ""}</p>
+      <p><strong>RG:</strong> ${paciente?.rg || ""}</p>
+      <p><strong>Nascimento:</strong> ${paciente?.nascimento || ""}</p>
+      <p><strong>Endereço:</strong> ${paciente?.endereco || ""}</p>
+      <p><strong>Saúde:</strong> ${paciente?.saude || ""}</p>
+      <p><strong>Observações:</strong> ${paciente?.observacoes || ""}</p>
 
       <h3>Histórico</h3>
       ${historico}
@@ -117,58 +144,104 @@ async function verFicha(idPaciente) {
     <button onclick="gerarPDF()">Gerar PDF</button>
   `;
 
-  modalFicha.style.display = "flex";
+  document.getElementById("modalFicha").style.display = "flex";
 }
 
 function gerarPDF() {
-  const elemento = document.getElementById("fichaPdf");
+  const ficha = document.getElementById("fichaPdf");
 
-  html2pdf().from(elemento).set({
-    margin: 10,
-    filename: "ficha-paciente.pdf",
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-  }).save();
+  if (!ficha) {
+    alert("Nenhuma ficha encontrada.");
+    return;
+  }
+
+  const janela = window.open("", "_blank");
+
+  janela.document.write(`
+    <html>
+      <head>
+        <title>Ficha do Paciente</title>
+        <style>
+          body {
+            font-family: Arial;
+            padding: 30px;
+            color: #000;
+          }
+          h2, h3 {
+            text-align: center;
+          }
+          p {
+            margin: 8px 0;
+          }
+          hr {
+            margin: 15px 0;
+          }
+        </style>
+      </head>
+      <body>
+        ${ficha.innerHTML}
+      </body>
+    </html>
+  `);
+
+  janela.document.close();
+
+  setTimeout(() => {
+    janela.print();
+    janela.close();
+  }, 500);
 }
 
 function fecharFicha() {
-  modalFicha.style.display = "none";
+  document.getElementById("modalFicha").style.display = "none";
 }
 
-// ATENDIMENTOS
+// ================= ATENDIMENTOS =================
+
 async function salvar() {
-  const pacienteId = pacientesMap[nome.value];
+  const nome = document.getElementById("nome").value;
+  const feito = document.getElementById("feito").value;
+  const proximo = document.getElementById("proximo").value;
+
+  const pacienteId = pacientesMap[nome];
+
+  if (!pacienteId) {
+    alert("Selecione um paciente.");
+    return;
+  }
 
   await addDoc(collection(db, "atendimentos"), {
     pacienteId,
-    nome: nome.value,
-    feito: feito.value,
-    proximo: proximo.value,
+    nome,
+    feito,
+    proximo,
     data: new Date().toLocaleDateString()
   });
 
-  feito.value = "";
-  proximo.value = "";
+  document.getElementById("feito").value = "";
+  document.getElementById("proximo").value = "";
 
   listar();
 }
 
 async function listar() {
+  const lista = document.getElementById("lista");
   lista.innerHTML = "";
 
-  const dados = await getDocs(collection(db, "atendimentos"));
+  const querySnapshot = await getDocs(collection(db, "atendimentos"));
 
-  dados.forEach(docItem => {
+  querySnapshot.forEach((docItem) => {
     const data = docItem.data();
     const id = docItem.id;
 
-    lista.innerHTML += `
-      <li>
-        <strong>${data.nome}</strong><br>
-        ${data.feito} - ${data.proximo} - ${data.data}
-        <button onclick="excluir('${id}')">Excluir</button>
-      </li>
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <strong>${data.nome}</strong><br>
+      ${data.feito} | ${data.proximo} | ${data.data}
+      <button onclick="excluir('${id}')">Excluir</button>
     `;
+
+    lista.appendChild(li);
   });
 }
 
@@ -177,46 +250,56 @@ async function excluir(id) {
   listar();
 }
 
-// BUSCA
-function filtrar() {
-  const termo = busca.value.toLowerCase();
+// ================= BUSCA =================
 
-  document.querySelectorAll("#lista li").forEach(li => {
-    li.style.display = li.innerText.toLowerCase().includes(termo) ? "" : "none";
+function filtrar() {
+  const termo = document.getElementById("busca").value.toLowerCase();
+
+  document.querySelectorAll("#lista li").forEach((item) => {
+    item.style.display = item.innerText.toLowerCase().includes(termo) ? "" : "none";
   });
 }
 
-// CALENDÁRIO
+// ================= CALENDÁRIO =================
+
 async function carregarCalendario() {
-  listaCalendario.innerHTML = "";
+  const lista = document.getElementById("listaCalendario");
+  if (!lista) return;
 
-  const dados = await getDocs(collection(db, "atendimentos"));
+  lista.innerHTML = "";
 
-  dados.forEach(docItem => {
+  const querySnapshot = await getDocs(collection(db, "atendimentos"));
+
+  querySnapshot.forEach((docItem) => {
     const data = docItem.data();
 
     if (data.proximo) {
-      listaCalendario.innerHTML += `
-        <li>
-          <strong>${data.nome}</strong><br>
-          ${data.feito}<br>
-          Retorno: ${data.proximo}
-        </li>
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <strong>${data.nome}</strong><br>
+        ${data.feito}<br>
+        Retorno: ${data.proximo}
       `;
+      lista.appendChild(li);
     }
   });
 }
 
-// ABAS
+// ================= ABAS =================
+
 function mostrarAba(aba) {
-  pacientes.style.display = "none";
-  atendimentos.style.display = "none";
-  calendario.style.display = "none";
+  document.getElementById("pacientes").style.display = "none";
+  document.getElementById("atendimentos").style.display = "none";
+  document.getElementById("calendario").style.display = "none";
 
   document.getElementById(aba).style.display = "block";
 
-  if (aba === "calendario") carregarCalendario();
+  if (aba === "calendario") {
+    carregarCalendario();
+  }
 }
+
+// ================= GLOBAL =================
 
 window.salvarPaciente = salvarPaciente;
 window.salvar = salvar;
