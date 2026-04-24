@@ -127,6 +127,7 @@ async function verFicha(idPaciente) {
 
   atendimentosSnapshot.forEach((docItem) => {
     const item = docItem.data();
+
     if (item.pacienteId === idPaciente) {
       historico.push(item);
     }
@@ -144,7 +145,7 @@ async function verFicha(idPaciente) {
       <p><strong>Saúde:</strong> ${paciente.saude || ""}</p>
       <p><strong>Observações:</strong> ${paciente.observacoes || ""}</p>
 
-      <h3>Histórico</h3>
+      <h3>Histórico de Atendimentos</h3>
   `;
 
   historico.forEach((item) => {
@@ -156,7 +157,10 @@ async function verFicha(idPaciente) {
     `;
   });
 
-  html += `</div><button onclick="gerarPDF()">Gerar PDF</button>`;
+  html += `
+    </div>
+    <button onclick="gerarPDF()">Gerar PDF</button>
+  `;
 
   document.getElementById("conteudoFicha").innerHTML = html;
   document.getElementById("modalFicha").style.display = "flex";
@@ -186,10 +190,7 @@ function gerarPDF() {
     margin: 10,
     filename: "ficha-paciente.pdf",
     image: { type: "jpeg", quality: 0.98 },
-    html2canvas: {
-      scale: 2,
-      useCORS: true
-    },
+    html2canvas: { scale: 2, useCORS: true },
     jsPDF: {
       unit: "mm",
       format: "a4",
@@ -197,35 +198,9 @@ function gerarPDF() {
     }
   };
 
-  html2pdf()
-    .set(opcoes)
-    .from(copia)
-    .save()
-    .then(() => {
-      document.body.removeChild(copia);
-    });
-}
-
-  if (!elemento) {
-    alert("Nenhuma ficha encontrada.");
-    return;
-  }
-
-  const opcoes = {
-    margin: 10,
-    filename: "ficha-paciente.pdf",
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: {
-      scale: 2
-    },
-    jsPDF: {
-      unit: "mm",
-      format: "a4",
-      orientation: "portrait"
-    }
-  };
-
-  html2pdf().set(opcoes).from(elemento).save();
+  html2pdf().set(opcoes).from(copia).save().then(() => {
+    document.body.removeChild(copia);
+  });
 }
 
 function fecharFicha() {
@@ -254,7 +229,6 @@ async function salvar() {
     data: new Date().toLocaleDateString()
   });
 
-  document.getElementById("nome").value = "";
   document.getElementById("feito").value = "";
   document.getElementById("proximo").value = "";
 
@@ -323,24 +297,19 @@ async function carregarCalendario() {
   lista.innerHTML = "";
 
   const querySnapshot = await getDocs(collection(db, "atendimentos"));
-  let retornos = [];
 
   querySnapshot.forEach((docItem) => {
     const data = docItem.data();
 
     if (data.proximo) {
-      retornos.push(data);
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <strong>${data.nome}</strong><br>
+        ${data.feito}<br>
+        Retorno: ${data.proximo}
+      `;
+      lista.appendChild(li);
     }
-  });
-
-  retornos.forEach((item) => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <strong>${item.nome}</strong><br>
-      ${item.feito}<br>
-      Retorno: ${item.proximo}
-    `;
-    lista.appendChild(li);
   });
 }
 
