@@ -81,6 +81,12 @@ button[onclick^="excluir"] {
 button[onclick^="excluir"]:hover {
   background: #cc0000;
 }
+
+/* 🔥 ALERTA */
+.alerta {
+  background: #ffe5e5;
+  border-left: 5px solid red;
+}
 </style>
 
 </head>
@@ -101,6 +107,10 @@ button[onclick^="excluir"]:hover {
 
 <h2>Buscar paciente</h2>
 <input id="busca" placeholder="Digite o nome" oninput="filtrar()">
+
+<!-- 🔥 NOVA ÁREA DE ALERTA -->
+<h2>⚠️ Retornos</h2>
+<ul id="alertas"></ul>
 
 <h2>Registros</h2>
 <ul id="lista"></ul>
