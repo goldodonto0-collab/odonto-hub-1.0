@@ -23,28 +23,34 @@ const db = getFirestore(app);
 
 let pacientesMap = {};
 
-// 👤 SALVAR PACIENTE
+// SALVAR PACIENTE
 async function salvarPaciente() {
-  const nome = document.getElementById("nomePaciente").value;
-  const telefone = document.getElementById("telefonePaciente").value;
+  const paciente = {
+    nome: document.getElementById("nomePaciente").value,
+    telefone: document.getElementById("telefonePaciente").value,
+    cpf: document.getElementById("cpfPaciente").value,
+    rg: document.getElementById("rgPaciente").value,
+    nascimento: document.getElementById("nascimentoPaciente").value,
+    endereco: document.getElementById("enderecoPaciente").value,
+    saude: document.getElementById("saudePaciente").value,
+    observacoes: document.getElementById("observacoesPaciente").value
+  };
 
-  if (!nome.trim()) {
+  if (!paciente.nome.trim()) {
     alert("Digite o nome!");
     return;
   }
 
-  await addDoc(collection(db, "pacientes"), {
-    nome,
-    telefone
-  });
+  await addDoc(collection(db, "pacientes"), paciente);
 
-  document.getElementById("nomePaciente").value = "";
-  document.getElementById("telefonePaciente").value = "";
+  document.querySelectorAll("#pacientes input, #pacientes textarea").forEach(campo => {
+    campo.value = "";
+  });
 
   listarPacientes();
 }
 
-// 📋 LISTAR PACIENTES
+// LISTAR PACIENTES
 async function listarPacientes() {
   const lista = document.getElementById("listaPacientes");
   lista.innerHTML = "";
@@ -59,54 +65,51 @@ async function listarPacientes() {
     pacientesMap[data.nome] = id;
 
     const li = document.createElement("li");
-
     li.innerHTML = `
-      ${data.nome} - ${data.telefone || ""}
-      <button onclick="editarPaciente('${id}', '${data.nome}', '${data.telefone || ""}')">Editar</button>
+      <strong>${data.nome}</strong><br>
+      Telefone: ${data.telefone || ""}<br>
+      CPF: ${data.cpf || ""}<br>
+      Saúde: ${data.saude || "Nenhuma"}<br>
+      <button onclick="editarPaciente('${id}')">Editar</button>
       <button onclick="excluirPaciente('${id}')">Excluir</button>
     `;
-
     lista.appendChild(li);
   });
 }
 
-// ✏️ EDITAR PACIENTE
-async function editarPaciente(id, nomeAtual, telefoneAtual) {
-  const novoNome = prompt("Editar nome:", nomeAtual);
-  const novoTelefone = prompt("Editar telefone:", telefoneAtual);
-
-  if (!novoNome) return;
+// EDITAR PACIENTE
+async function editarPaciente(id) {
+  const nome = prompt("Nome:");
+  if (!nome) return;
 
   await updateDoc(doc(db, "pacientes", id), {
-    nome: novoNome,
-    telefone: novoTelefone
+    nome,
+    telefone: prompt("Telefone:"),
+    cpf: prompt("CPF:"),
+    rg: prompt("RG:"),
+    nascimento: prompt("Data nascimento:"),
+    endereco: prompt("Endereço:"),
+    saude: prompt("Problema de saúde:"),
+    observacoes: prompt("Observações:")
   });
 
   listarPacientes();
 }
 
-// ❌ EXCLUIR PACIENTE
+// EXCLUIR PACIENTE
 async function excluirPaciente(id) {
-  const confirmar = confirm("Deseja excluir este paciente?");
-  if (!confirmar) return;
-
+  if (!confirm("Deseja excluir este paciente?")) return;
   await deleteDoc(doc(db, "pacientes", id));
   listarPacientes();
 }
 
-// 📝 SALVAR ATENDIMENTO
+// SALVAR ATENDIMENTO
 async function salvar() {
   const nome = document.getElementById("nome").value;
   const feito = document.getElementById("feito").value;
   const proximo = document.getElementById("proximo").value;
 
-  if (!nome.trim()) {
-    alert("Digite o nome!");
-    return;
-  }
-
   const pacienteId = pacientesMap[nome];
-
   if (!pacienteId) {
     alert("Paciente não cadastrado!");
     return;
@@ -127,7 +130,7 @@ async function salvar() {
   listar();
 }
 
-// 📄 LISTAR ATENDIMENTOS
+// LISTAR ATENDIMENTOS
 async function listar() {
   const lista = document.getElementById("lista");
   lista.innerHTML = "";
@@ -135,18 +138,12 @@ async function listar() {
   const querySnapshot = await getDocs(collection(db, "atendimentos"));
   const pacientes = {};
 
-  querySnapshot.forEach((docItem) => {
+  querySnapshot.forEach(docItem => {
     const data = docItem.data();
     const id = docItem.id;
 
-    if (!pacientes[data.nome]) {
-      pacientes[data.nome] = [];
-    }
-
-    pacientes[data.nome].push({
-      ...data,
-      id
-    });
+    if (!pacientes[data.nome]) pacientes[data.nome] = [];
+    pacientes[data.nome].push({ ...data, id });
   });
 
   for (let nome in pacientes) {
@@ -155,14 +152,12 @@ async function listar() {
 
     const subLista = document.createElement("ul");
 
-    pacientes[nome].forEach((item) => {
+    pacientes[nome].forEach(item => {
       const subLi = document.createElement("li");
-
       subLi.innerHTML = `
         ${item.feito} | ${item.proximo} | ${item.data}
         <button onclick="excluir('${item.id}')">Excluir</button>
       `;
-
       subLista.appendChild(subLi);
     });
 
@@ -173,28 +168,22 @@ async function listar() {
   verificarAlertas(pacientes);
 }
 
-// ❌ EXCLUIR ATENDIMENTO
+// EXCLUIR ATENDIMENTO
 async function excluir(id) {
   await deleteDoc(doc(db, "atendimentos", id));
   listar();
 }
 
-// 🔔 ALERTA
+// ALERTAS
 function verificarAlertas(pacientes) {
   const listaAlertas = document.getElementById("alertas");
-  if (!listaAlertas) return;
-
   listaAlertas.innerHTML = "";
 
   for (let nome in pacientes) {
-    pacientes[nome].forEach((item) => {
+    pacientes[nome].forEach(item => {
       const texto = (item.proximo || "").toLowerCase();
 
-      if (
-        texto.includes("retorno") ||
-        texto.includes("hoje") ||
-        texto.includes("amanhã")
-      ) {
+      if (texto.includes("retorno") || texto.includes("hoje") || texto.includes("amanhã")) {
         const li = document.createElement("li");
         li.classList.add("alerta");
         li.textContent = `${nome} - ${item.proximo}`;
@@ -204,23 +193,18 @@ function verificarAlertas(pacientes) {
   }
 }
 
-// 🔍 BUSCA
+// BUSCA
 function filtrar() {
   const busca = document.getElementById("busca").value.toLowerCase();
-  const lista = document.getElementById("lista");
-  const pacientes = lista.getElementsByTagName("li");
-
-  for (let i = 0; i < pacientes.length; i++) {
-    const nome = pacientes[i].innerText.toLowerCase();
-    pacientes[i].style.display = nome.includes(busca) ? "" : "none";
-  }
+  document.querySelectorAll("#lista > li").forEach(li => {
+    li.style.display = li.innerText.toLowerCase().includes(busca) ? "" : "none";
+  });
 }
 
-// 📑 ABAS
+// ABAS
 function mostrarAba(aba) {
   document.getElementById("pacientes").style.display = "none";
   document.getElementById("atendimentos").style.display = "none";
-
   document.getElementById(aba).style.display = "block";
 }
 
