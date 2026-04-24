@@ -23,7 +23,7 @@ const db = getFirestore(app);
 
 let pacientesMap = {};
 
-// ==================== PACIENTES ====================
+// ================= PACIENTES =================
 
 async function salvarPaciente() {
   const paciente = {
@@ -38,7 +38,7 @@ async function salvarPaciente() {
   };
 
   if (!paciente.nome.trim()) {
-    alert("Digite o nome do paciente!");
+    alert("Digite o nome do paciente.");
     return;
   }
 
@@ -53,13 +53,13 @@ async function salvarPaciente() {
 
 async function listarPacientes() {
   const lista = document.getElementById("listaPacientes");
-  const selectPaciente = document.getElementById("nome");
+  const select = document.getElementById("nome");
 
   lista.innerHTML = "";
   pacientesMap = {};
 
-  if (selectPaciente) {
-    selectPaciente.innerHTML = `<option value="">Selecione o paciente</option>`;
+  if (select) {
+    select.innerHTML = `<option value="">Selecione o paciente</option>`;
   }
 
   const querySnapshot = await getDocs(collection(db, "pacientes"));
@@ -74,37 +74,30 @@ async function listarPacientes() {
     li.innerHTML = `
       <strong>${data.nome}</strong><br>
       Telefone: ${data.telefone || ""}<br>
-      CPF: ${data.cpf || ""}<br>
-      Saúde: ${data.saude || "Nenhuma"}<br><br>
+      CPF: ${data.cpf || ""}<br><br>
 
       <button onclick="verFicha('${id}')">Ficha</button>
       <button onclick="editarPaciente('${id}')">Editar</button>
       <button onclick="excluirPaciente('${id}')">Excluir</button>
     `;
+
     lista.appendChild(li);
 
-    if (selectPaciente) {
+    if (select) {
       const option = document.createElement("option");
       option.value = data.nome;
       option.textContent = data.nome;
-      selectPaciente.appendChild(option);
+      select.appendChild(option);
     }
   });
 }
 
 async function editarPaciente(id) {
-  const nome = prompt("Nome:");
-  if (!nome) return;
+  const novoNome = prompt("Novo nome:");
+  if (!novoNome) return;
 
   await updateDoc(doc(db, "pacientes", id), {
-    nome,
-    telefone: prompt("Telefone:"),
-    cpf: prompt("CPF:"),
-    rg: prompt("RG:"),
-    nascimento: prompt("Data de nascimento:"),
-    endereco: prompt("Endereço:"),
-    saude: prompt("Problema de saúde:"),
-    observacoes: prompt("Observações:")
+    nome: novoNome
   });
 
   listarPacientes();
@@ -112,11 +105,12 @@ async function editarPaciente(id) {
 
 async function excluirPaciente(id) {
   if (!confirm("Deseja excluir este paciente?")) return;
+
   await deleteDoc(doc(db, "pacientes", id));
   listarPacientes();
 }
 
-// ==================== FICHA ====================
+// ================= FICHA =================
 
 async function verFicha(idPaciente) {
   const pacientesSnapshot = await getDocs(collection(db, "pacientes"));
@@ -150,26 +144,19 @@ async function verFicha(idPaciente) {
       <p><strong>Saúde:</strong> ${paciente.saude || ""}</p>
       <p><strong>Observações:</strong> ${paciente.observacoes || ""}</p>
 
-      <h3>Histórico de atendimentos</h3>
+      <h3>Histórico</h3>
   `;
-
-  if (historico.length === 0) {
-    html += `<p>Nenhum atendimento registrado.</p>`;
-  }
 
   historico.forEach((item) => {
     html += `
       <p><strong>Data:</strong> ${item.data}</p>
       <p><strong>Procedimento:</strong> ${item.feito}</p>
-      <p><strong>Próximo retorno:</strong> ${item.proximo}</p>
+      <p><strong>Retorno:</strong> ${item.proximo}</p>
       <hr>
     `;
   });
 
-  html += `
-      </div>
-      <button onclick="gerarPDF()">Gerar PDF</button>
-  `;
+  html += `</div><button onclick="gerarPDF()">Gerar PDF</button>`;
 
   document.getElementById("conteudoFicha").innerHTML = html;
   document.getElementById("modalFicha").style.display = "flex";
@@ -178,14 +165,33 @@ async function verFicha(idPaciente) {
 function gerarPDF() {
   const elemento = document.getElementById("fichaPdf");
 
-  html2pdf().from(elemento).save("ficha-paciente.pdf");
+  if (!elemento) {
+    alert("Nenhuma ficha encontrada.");
+    return;
+  }
+
+  const opcoes = {
+    margin: 10,
+    filename: "ficha-paciente.pdf",
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: {
+      scale: 2
+    },
+    jsPDF: {
+      unit: "mm",
+      format: "a4",
+      orientation: "portrait"
+    }
+  };
+
+  html2pdf().set(opcoes).from(elemento).save();
 }
 
 function fecharFicha() {
   document.getElementById("modalFicha").style.display = "none";
 }
 
-// ==================== ATENDIMENTOS ====================
+// ================= ATENDIMENTOS =================
 
 async function salvar() {
   const nome = document.getElementById("nome").value;
@@ -195,7 +201,7 @@ async function salvar() {
   const pacienteId = pacientesMap[nome];
 
   if (!pacienteId) {
-    alert("Paciente não selecionado!");
+    alert("Selecione um paciente.");
     return;
   }
 
@@ -219,36 +225,37 @@ async function listar() {
   lista.innerHTML = "";
 
   const querySnapshot = await getDocs(collection(db, "atendimentos"));
-  const pacientes = {};
+  const agrupado = {};
 
   querySnapshot.forEach((docItem) => {
     const data = docItem.data();
     const id = docItem.id;
 
-    if (!pacientes[data.nome]) pacientes[data.nome] = [];
-    pacientes[data.nome].push({ ...data, id });
+    if (!agrupado[data.nome]) {
+      agrupado[data.nome] = [];
+    }
+
+    agrupado[data.nome].push({ ...data, id });
   });
 
-  for (let nome in pacientes) {
+  for (let nome in agrupado) {
     const li = document.createElement("li");
     li.innerHTML = `<strong>${nome}</strong>`;
 
-    const subLista = document.createElement("ul");
+    const sub = document.createElement("ul");
 
-    pacientes[nome].forEach((item) => {
+    agrupado[nome].forEach((item) => {
       const subLi = document.createElement("li");
       subLi.innerHTML = `
         ${item.feito} | ${item.proximo} | ${item.data}
         <button onclick="excluir('${item.id}')">Excluir</button>
       `;
-      subLista.appendChild(subLi);
+      sub.appendChild(subLi);
     });
 
-    li.appendChild(subLista);
+    li.appendChild(sub);
     lista.appendChild(li);
   }
-
-  verificarAlertas(pacientes);
 }
 
 async function excluir(id) {
@@ -256,37 +263,17 @@ async function excluir(id) {
   listar();
 }
 
-// ==================== ALERTAS ====================
-
-function verificarAlertas(pacientes) {
-  const listaAlertas = document.getElementById("alertas");
-  listaAlertas.innerHTML = "";
-
-  for (let nome in pacientes) {
-    pacientes[nome].forEach((item) => {
-      const texto = (item.proximo || "").toLowerCase();
-
-      if (texto.includes("retorno") || texto.includes("hoje") || texto.includes("amanhã")) {
-        const li = document.createElement("li");
-        li.classList.add("alerta");
-        li.textContent = `${nome} - ${item.proximo}`;
-        listaAlertas.appendChild(li);
-      }
-    });
-  }
-}
-
-// ==================== BUSCA ====================
+// ================= BUSCA =================
 
 function filtrar() {
-  const busca = document.getElementById("busca").value.toLowerCase();
+  const termo = document.getElementById("busca").value.toLowerCase();
 
-  document.querySelectorAll("#lista > li").forEach((li) => {
-    li.style.display = li.innerText.toLowerCase().includes(busca) ? "" : "none";
+  document.querySelectorAll("#lista > li").forEach((item) => {
+    item.style.display = item.innerText.toLowerCase().includes(termo) ? "" : "none";
   });
 }
 
-// ==================== CALENDÁRIO ====================
+// ================= CALENDÁRIO =================
 
 async function carregarCalendario() {
   const lista = document.getElementById("listaCalendario");
@@ -300,37 +287,23 @@ async function carregarCalendario() {
   querySnapshot.forEach((docItem) => {
     const data = docItem.data();
 
-    if (data.proximo && data.proximo.trim() !== "") {
-      const partes = data.proximo.split("/");
-      let dataObj = null;
-
-      if (partes.length === 3) {
-        dataObj = new Date(partes[2], partes[1] - 1, partes[0]);
-      }
-
-      retornos.push({
-        nome: data.nome,
-        feito: data.feito,
-        proximo: data.proximo,
-        dataObj
-      });
+    if (data.proximo) {
+      retornos.push(data);
     }
   });
-
-  retornos.sort((a, b) => a.dataObj - b.dataObj);
 
   retornos.forEach((item) => {
     const li = document.createElement("li");
     li.innerHTML = `
       <strong>${item.nome}</strong><br>
-      Procedimento: ${item.feito}<br>
+      ${item.feito}<br>
       Retorno: ${item.proximo}
     `;
     lista.appendChild(li);
   });
 }
 
-// ==================== ABAS ====================
+// ================= ABAS =================
 
 function mostrarAba(aba) {
   document.getElementById("pacientes").style.display = "none";
@@ -344,7 +317,7 @@ function mostrarAba(aba) {
   }
 }
 
-// ==================== GLOBAL ====================
+// ================= GLOBAL =================
 
 window.salvarPaciente = salvarPaciente;
 window.salvar = salvar;
@@ -355,7 +328,6 @@ window.excluirPaciente = excluirPaciente;
 window.verFicha = verFicha;
 window.fecharFicha = fecharFicha;
 window.gerarPDF = gerarPDF;
-window.carregarCalendario = carregarCalendario;
 window.mostrarAba = mostrarAba;
 
 listarPacientes();
