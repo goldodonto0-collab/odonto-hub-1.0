@@ -216,12 +216,21 @@ function filtrar() {
   }
 }
 
+// 📑 ABAS
+function mostrarAba(aba) {
+  document.getElementById("pacientes").style.display = "none";
+  document.getElementById("atendimentos").style.display = "none";
+
+  document.getElementById(aba).style.display = "block";
+}
+
 window.salvarPaciente = salvarPaciente;
 window.salvar = salvar;
 window.excluir = excluir;
 window.filtrar = filtrar;
 window.editarPaciente = editarPaciente;
 window.excluirPaciente = excluirPaciente;
+window.mostrarAba = mostrarAba;
 
 listarPacientes();
 listar();
