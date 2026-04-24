@@ -12,7 +12,7 @@ const firebaseConfig = {
   apiKey: "SUA_API_KEY",
   authDomain: "agenda-paciente.firebaseapp.com",
   projectId: "agenda-paciente",
-  storageBucket: "agenda-paciente.firebasestorage.app",
+  storageBucket: "agenda-paciente.appspot.com",
   messagingSenderId: "159249022645",
   appId: "1:159249022645:web:08b5fe64f2f0db4c9708fc",
   measurementId: "G-B56CBCXFTS"
@@ -53,7 +53,6 @@ async function listar() {
 
   const pacientes = {};
 
-  // 🔥 Primeiro: organizar os dados
   querySnapshot.forEach((docItem) => {
     const data = docItem.data();
     const id = docItem.id;
@@ -64,11 +63,10 @@ async function listar() {
 
     pacientes[data.nome].push({
       ...data,
-      id
+      id: id
     });
   });
 
-  // 🔥 Depois: montar a tela
   for (let nome in pacientes) {
     const li = document.createElement("li");
     li.innerHTML = `<strong>${nome}</strong>`;
