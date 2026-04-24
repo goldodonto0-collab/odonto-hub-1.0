@@ -5,26 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Odonto Hub</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="favicon.ico">
 </head>
 <body>
 
   <div class="container">
     <h1>Odonto Hub</h1>
 
-    <!-- MENU DE ABAS -->
     <div class="tabs">
-      <button type="button" onclick="mostrarAba('pacientes')">Pacientes</button>
-      <button type="button" onclick="mostrarAba('atendimentos')">Atendimentos</button>
-      <button type="button" onclick="mostrarAba('calendario')">Calendário</button>
+      <button onclick="mostrarAba('pacientes')">Pacientes</button>
+      <button onclick="mostrarAba('atendimentos')">Atendimentos</button>
+      <button onclick="mostrarAba('calendario')">Calendário</button>
     </div>
 
-    <!-- ABA PACIENTES -->
+    <!-- PACIENTES -->
     <section id="pacientes" class="aba">
       <div class="card">
         <h2>Cadastro de Pacientes</h2>
 
-        <input id="nomePaciente" type="text" placeholder="Nome do paciente">
+        <input id="nomePaciente" type="text" placeholder="Nome">
         <input id="telefonePaciente" type="text" placeholder="Telefone">
         <input id="cpfPaciente" type="text" placeholder="CPF">
         <input id="rgPaciente" type="text" placeholder="RG">
@@ -33,7 +31,7 @@
         <input id="saudePaciente" type="text" placeholder="Problema de saúde">
         <textarea id="observacoesPaciente" placeholder="Observações"></textarea>
 
-        <button type="button" onclick="salvarPaciente()">Salvar Paciente</button>
+        <button onclick="salvarPaciente()">Salvar Paciente</button>
       </div>
 
       <div class="card">
@@ -42,7 +40,7 @@
       </div>
     </section>
 
-    <!-- ABA ATENDIMENTOS -->
+    <!-- ATENDIMENTOS -->
     <section id="atendimentos" class="aba" style="display:none;">
       <div class="card">
         <h2>Novo Atendimento</h2>
@@ -52,28 +50,23 @@
         </select>
 
         <input id="feito" type="text" placeholder="Procedimento realizado">
-        <input id="proximo" type="text" placeholder="Próximo retorno (dd/mm/aaaa)">
+        <input id="proximo" type="text" placeholder="Próximo retorno">
 
-        <button type="button" onclick="salvar()">Salvar Atendimento</button>
+        <button onclick="salvar()">Salvar Atendimento</button>
       </div>
 
       <div class="card">
-        <h3>Buscar paciente</h3>
-        <input id="busca" type="text" placeholder="Digite o nome" onkeyup="filtrar()">
+        <h3>Buscar</h3>
+        <input id="busca" type="text" onkeyup="filtrar()" placeholder="Buscar paciente">
       </div>
 
       <div class="card">
-        <h3>Alertas</h3>
-        <ul id="alertas"></ul>
-      </div>
-
-      <div class="card">
-        <h3>Histórico de atendimentos</h3>
+        <h3>Histórico</h3>
         <ul id="lista"></ul>
       </div>
     </section>
 
-    <!-- ABA CALENDÁRIO -->
+    <!-- CALENDÁRIO -->
     <section id="calendario" class="aba" style="display:none;">
       <div class="card">
         <h2>Calendário de Retornos</h2>
@@ -82,7 +75,7 @@
     </section>
   </div>
 
-  <!-- MODAL DA FICHA -->
+  <!-- MODAL -->
   <div id="modalFicha" class="modal" style="display:none;">
     <div class="modal-conteudo">
       <span class="fechar" onclick="fecharFicha()">×</span>
@@ -90,10 +83,10 @@
     </div>
   </div>
 
-  <!-- BIBLIOTECA PARA PDF -->
+  <!-- PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-  <!-- SCRIPT PRINCIPAL -->
+  <!-- SCRIPT -->
   <script type="module" src="script.js"></script>
 
 </body>
