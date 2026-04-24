@@ -50,16 +50,18 @@ async function listar() {
 
   const pacientes = {};
 
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
+ querySnapshot.forEach((doc) => {
+  const data = doc.data();
+  const id = doc.id;
     
     if (!pacientes[data.nome]) {
       pacientes[data.nome] = [];
     }
 
-    pacientes[data.nome].push(data);
-  });
-
+  pacientes[data.nome].push({
+  ...data,
+  id
+});
   for (let nome in pacientes) {
     const li = document.createElement("li");
     li.innerHTML = `<strong>${nome}</strong>`;
@@ -68,7 +70,10 @@ async function listar() {
 
     pacientes[nome].forEach((item) => {
       const subLi = document.createElement("li");
-      subLi.textContent = `${item.feito} | ${item.proximo} | ${item.data}`;
+     subLi.innerHTML = `
+  ${item.feito} | ${item.proximo} | ${item.data}
+  <button onclick="excluir('${item.id}')">Excluir</button>
+`;
       subLista.appendChild(subLi);
     });
 
@@ -79,3 +84,11 @@ async function listar() {
 
 window.salvar = salvar;
 listar();
+import { deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+async function excluir(id) {
+  await deleteDoc(doc(db, "pacientes", id));
+  listar();
+}
+
+window.excluir = excluir;
