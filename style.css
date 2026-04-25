@@ -185,3 +185,26 @@ li {
   font-size: 22px;
   font-weight: bold;
 }
+/* ===== AJUSTE PARA PDF ESTÁVEL ===== */
+
+#pdfArea {
+  background: white !important;
+}
+
+/* evita cortes no canvas */
+.container {
+  overflow: visible;
+}
+
+/* melhora renderização no PDF */
+.card {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* melhora odontograma no canvas/PDF */
+.odontograma {
+  background: white;
+  padding: 10px;
+  border-radius: 10px;
+}
