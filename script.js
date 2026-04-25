@@ -144,7 +144,9 @@ async function listarOrcamentos() {
 }
 
 // PDF (MANTIDO SIMPLES E FUNCIONAL)
-window.gerarPDF = function (data) {
+window.gerarPDF = async function (data) {
+
+  const { jsPDF } = window.jspdf;
 
   const wrapper = document.createElement("div");
 
@@ -153,15 +155,72 @@ window.gerarPDF = function (data) {
   data.itens.forEach(i => {
     itensHTML += `
       <tr>
-        <td style="padding:8px; border-bottom:1px solid #ddd;">${i.dente}</td>
-        <td style="padding:8px; border-bottom:1px solid #ddd;">${i.proc}</td>
-        <td style="padding:8px; border-bottom:1px solid #ddd; text-align:right;">
+        <td style="padding:8px;border:1px solid #ddd;">${i.dente}</td>
+        <td style="padding:8px;border:1px solid #ddd;">${i.proc}</td>
+        <td style="padding:8px;border:1px solid #ddd;text-align:right;">
           R$ ${Number(i.valor).toFixed(2)}
         </td>
       </tr>
     `;
   });
 
+  wrapper.innerHTML = `
+    <div id="pdfArea" style="
+      width: 800px;
+      padding: 30px;
+      font-family: Arial;
+      background: white;
+    ">
+
+      <div style="display:flex;justify-content:space-between;border-bottom:2px solid #0b5ed7;padding-bottom:10px;">
+        <img src="https://i.imgur.com/2Bvio9f.jpeg" width="140">
+        <div style="text-align:right;">
+          <h2 style="margin:0;color:#0b5ed7;">Clínica Odontológica</h2>
+          <small>Orçamento Profissional</small>
+        </div>
+      </div>
+
+      <p><b>Paciente:</b> ${data.paciente}</p>
+      <p><b>Data:</b> ${data.data}</p>
+
+      <table style="width:100%;border-collapse:collapse;margin-top:15px;">
+        <tr style="background:#0b5ed7;color:white;">
+          <th>Dente</th>
+          <th>Procedimento</th>
+          <th>Valor</th>
+        </tr>
+        ${itensHTML}
+      </table>
+
+      <h3 style="text-align:right;color:#0b5ed7;margin-top:20px;">
+        Total: R$ ${data.total.toFixed(2)}
+      </h3>
+
+    </div>
+  `;
+
+  document.body.appendChild(wrapper);
+
+  const element = document.getElementById("pdfArea");
+
+  const canvas = await html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: "#ffffff"
+  });
+
+  const imgData = canvas.toDataURL("image/png");
+
+  const pdf = new jsPDF("p", "mm", "a4");
+
+  const imgWidth = 210;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+  pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+  pdf.save(`orcamento-${data.paciente}.pdf`);
+
+  document.body.removeChild(wrapper);
+};
   wrapper.innerHTML = `
     <div style="
       font-family: Arial;
