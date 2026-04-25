@@ -21,6 +21,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// ================= LOGO =================
+const LOGO_URL = "https://i.imgur.com/2Bvio9f.jpeg";
+
 // ================= VARIÁVEIS =================
 
 let pacientesMap = {};
@@ -212,19 +215,16 @@ async function listarOrcamentos() {
   });
 }
 
-// ================= PDF ORÇAMENTO NOVO =================
+// ================= PDF COM LOGO =================
 
-function gerarPDFOrcamento() {
-  const paciente = document.getElementById("pacienteOrcamento").value;
-  const total = document.getElementById("totalOrcamento").innerText;
+function gerarPDF(data) {
+  const janela = window.open("", "_blank");
 
   let itensHTML = "";
 
-  document.querySelectorAll("#listaItensOrcamento li").forEach(li => {
-    itensHTML += `<p>${li.innerText}</p>`;
+  data.itens.forEach(i => {
+    itensHTML += `<p>Dente ${i.dente} - ${i.proc} - R$ ${i.valor.toFixed(2)}</p>`;
   });
-
-  const janela = window.open("", "_blank");
 
   janela.document.write(`
     <html>
@@ -233,51 +233,18 @@ function gerarPDFOrcamento() {
         <style>
           body { font-family: Arial; padding: 30px; }
           h1 { text-align: center; }
+          .logo { display:flex; justify-content:center; margin-bottom:20px; }
+          .logo img { width:120px; }
           p { margin: 6px 0; }
           .total { margin-top: 20px; font-size: 20px; font-weight: bold; }
         </style>
       </head>
       <body>
-        <h1>Orçamento Odontológico</h1>
-        <p><strong>Paciente:</strong> ${paciente}</p>
-        <hr>
-        ${itensHTML}
-        <div class="total">Total: R$ ${total}</div>
-      </body>
-    </html>
-  `);
 
-  janela.document.close();
+        <div class="logo">
+          <img src="${LOGO_URL}">
+        </div>
 
-  setTimeout(() => {
-    janela.print();
-    janela.close();
-  }, 500);
-}
-
-// ================= PDF HISTÓRICO =================
-
-function gerarPDFHistorico(data) {
-  let itensHTML = "";
-
-  data.itens.forEach(i => {
-    itensHTML += `<p>Dente ${i.dente} - ${i.proc} - R$ ${i.valor.toFixed(2)}</p>`;
-  });
-
-  const janela = window.open("", "_blank");
-
-  janela.document.write(`
-    <html>
-      <head>
-        <title>Orçamento - ${data.paciente}</title>
-        <style>
-          body { font-family: Arial; padding: 30px; }
-          h1 { text-align: center; }
-          p { margin: 6px 0; }
-          .total { margin-top: 20px; font-size: 20px; font-weight: bold; }
-        </style>
-      </head>
-      <body>
         <h1>Orçamento Odontológico</h1>
 
         <p><strong>Paciente:</strong> ${data.paciente}</p>
@@ -300,6 +267,12 @@ function gerarPDFHistorico(data) {
   }, 500);
 }
 
+// ================= PDF HISTÓRICO =================
+
+function gerarPDFHistorico(data) {
+  gerarPDF(data);
+}
+
 // ================= ABAS =================
 
 function mostrarAba(aba) {
@@ -318,10 +291,8 @@ window.onload = () => {
   window.adicionarItemOrcamento = adicionarItemOrcamento;
   window.removerItem = removerItem;
   window.salvarOrcamento = salvarOrcamento;
-  window.gerarPDFOrcamento = gerarPDFOrcamento;
   window.gerarPDFHistorico = gerarPDFHistorico;
   window.mostrarAba = mostrarAba;
-  window.listarOrcamentos = listarOrcamentos;
 
   criarOdontograma();
   listarPacientes();
