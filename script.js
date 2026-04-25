@@ -3,7 +3,10 @@ import {
   getFirestore,
   addDoc,
   collection,
-  getDocs
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
 // ================= FIREBASE =================
@@ -26,7 +29,9 @@ const LOGO_URL = "https://i.imgur.com/2Bvio9f.jpeg";
 
 // ================= VARIÁVEIS =================
 
+let pacientesMap = {};
 let itens = [];
+let editandoId = null;
 
 // ================= ABA =================
 
@@ -39,7 +44,14 @@ window.mostrarAba = function (aba) {
 
 window.salvarPaciente = async function () {
   const paciente = {
-    nome: document.getElementById("nomePaciente").value
+    nome: document.getElementById("nomePaciente").value,
+    telefone: document.getElementById("telefonePaciente").value,
+    cpf: document.getElementById("cpfPaciente").value,
+    rg: document.getElementById("rgPaciente").value,
+    nascimento: document.getElementById("nascimentoPaciente").value,
+    endereco: document.getElementById("enderecoPaciente").value,
+    saude: document.getElementById("saudePaciente").value,
+    observacoes: document.getElementById("observacoesPaciente").value
   };
 
   if (!paciente.nome) return alert("Digite o nome");
@@ -53,10 +65,12 @@ window.salvarPaciente = async function () {
 
 async function listarPacientes() {
   const lista = document.getElementById("listaPacientes");
-  const select = document.getElementById("pacienteOrcamento");
+  const selectAtend = document.getElementById("nome");
+  const selectOrc = document.getElementById("pacienteOrcamento");
 
   lista.innerHTML = "";
-  select.innerHTML = "";
+  selectAtend.innerHTML = `<option value="">Selecione o paciente</option>`;
+  selectOrc.innerHTML = `<option value="">Selecione o paciente</option>`;
 
   const snap = await getDocs(collection(db, "pacientes"));
 
@@ -64,7 +78,8 @@ async function listarPacientes() {
     const data = d.data();
 
     lista.innerHTML += `<li>${data.nome}</li>`;
-    select.innerHTML += `<option>${data.nome}</option>`;
+    selectAtend.innerHTML += `<option>${data.nome}</option>`;
+    selectOrc.innerHTML += `<option>${data.nome}</option>`;
   });
 }
 
@@ -112,12 +127,16 @@ window.salvarOrcamento = async function () {
   const paciente = document.getElementById("pacienteOrcamento").value;
   const total = itens.reduce((a,b)=>a+b.valor,0);
 
-  await addDoc(collection(db,"orcamentos"),{
+  if (!paciente) return alert("Selecione paciente");
+
+  const data = {
     paciente,
     data: new Date().toLocaleDateString(),
     itens,
     total
-  });
+  };
+
+  await addDoc(collection(db,"orcamentos"),data);
 
   itens = [];
   atualizarOrcamento();
@@ -128,6 +147,8 @@ window.salvarOrcamento = async function () {
 
 async function listarOrcamentos() {
   const lista = document.getElementById("historicoOrcamentos");
+  if (!lista) return;
+
   lista.innerHTML = "";
 
   const snap = await getDocs(collection(db, "orcamentos"));
@@ -145,9 +166,11 @@ async function listarOrcamentos() {
   });
 }
 
-// ================= PDF PROFISSIONAL (SEM BRANCO) =================
+// ================= PDF PROFISSIONAL COM LOGO =================
 
 window.gerarPDF = function (data) {
+
+  const janela = window.open("", "_blank");
 
   let itensHTML = "";
 
@@ -161,23 +184,94 @@ window.gerarPDF = function (data) {
     `;
   });
 
-  const el = document.createElement("div");
+  janela.document.write(`
+    <html>
+    <head>
+      <title>Orçamento Odontológico</title>
 
-  el.innerHTML = `
-    <div style="font-family:Arial; width:210mm; padding:20px;">
+      <style>
+        @page {
+          size: A4;
+          margin: 20mm;
+        }
 
-      <div style="display:flex; justify-content:space-between; border-bottom:2px solid #0b5ed7; padding-bottom:10px;">
-        <img src="${LOGO_URL}" style="width:140px;">
-        <div style="text-align:right;">
-          <h2 style="margin:0; color:#0b5ed7;">Clínica Odontológica</h2>
+        body {
+          font-family: Arial;
+          margin: 0;
+          padding: 0;
+          color: #333;
+        }
+
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-bottom: 2px solid #0b5ed7;
+          padding-bottom: 10px;
+          margin-bottom: 20px;
+        }
+
+        .logo img {
+          width: 160px;
+        }
+
+        .info {
+          text-align: right;
+        }
+
+        .info h2 {
+          margin: 0;
+          color: #0b5ed7;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 15px;
+        }
+
+        th {
+          background: #0b5ed7;
+          color: white;
+          padding: 10px;
+        }
+
+        td {
+          padding: 8px;
+          border-bottom: 1px solid #ddd;
+        }
+
+        .total {
+          text-align: right;
+          font-size: 18px;
+          margin-top: 20px;
+          color: #0b5ed7;
+          font-weight: bold;
+        }
+
+      </style>
+    </head>
+
+    <body>
+
+      <div class="header">
+
+        <div class="logo">
+          <img src="${LOGO_URL}">
         </div>
+
+        <div class="info">
+          <h2>Clínica Odontológica</h2>
+          <p>Orçamento Profissional</p>
+        </div>
+
       </div>
 
-      <p><b>Paciente:</b> ${data.paciente}</p>
-      <p><b>Data:</b> ${data.data}</p>
+      <p><strong>Paciente:</strong> ${data.paciente}</p>
+      <p><strong>Data:</strong> ${data.data}</p>
 
-      <table style="width:100%; border-collapse:collapse;">
-        <tr style="background:#0b5ed7; color:white;">
+      <table>
+        <tr>
           <th>Dente</th>
           <th>Procedimento</th>
           <th>Valor</th>
@@ -185,29 +279,31 @@ window.gerarPDF = function (data) {
         ${itensHTML}
       </table>
 
-      <h3 style="text-align:right; color:#0b5ed7;">
+      <div class="total">
         Total: R$ ${data.total.toFixed(2)}
-      </h3>
+      </div>
 
-    </div>
-  `;
+      <script>
+        window.onload = () => window.print();
+      </script>
 
-  document.body.appendChild(el);
+    </body>
+    </html>
+  `);
 
-  html2pdf().set({
-    margin: 0,
-    filename: `orcamento-${data.paciente}.pdf`,
-    image: { type: 'jpeg', quality: 1 },
-    html2canvas: { scale: 3, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  }).from(el).save().then(() => {
-    document.body.removeChild(el);
-  });
+  janela.document.close();
 };
 
 // ================= INIT =================
 
 window.onload = () => {
+  window.salvarPaciente = salvarPaciente;
+  window.adicionarItemOrcamento = adicionarItemOrcamento;
+  window.removerItem = removerItem;
+  window.salvarOrcamento = salvarOrcamento;
+  window.gerarPDF = gerarPDF;
+  window.mostrarAba = mostrarAba;
+
   listarPacientes();
   listarOrcamentos();
 };
