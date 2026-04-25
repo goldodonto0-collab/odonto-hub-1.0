@@ -6,9 +6,6 @@
   <title>Odonto Hub</title>
 
   <link rel="stylesheet" href="style.css">
-
-  <!-- PDF LIB -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
@@ -17,6 +14,7 @@
 
   <h1>Odonto Hub</h1>
 
+  <!-- MENU -->
   <div class="tabs">
     <button onclick="mostrarAba('pacientes')">Pacientes</button>
     <button onclick="mostrarAba('atendimentos')">Atendimentos</button>
@@ -35,6 +33,7 @@
       <input id="rgPaciente" placeholder="RG">
       <input id="nascimentoPaciente" type="date">
       <input id="enderecoPaciente" placeholder="Endereço">
+      <input id="saudePaciente" placeholder="Saúde">
       <textarea id="observacoesPaciente" placeholder="Observações"></textarea>
 
       <button onclick="salvarPaciente()">Salvar</button>
@@ -43,6 +42,33 @@
     <div class="card">
       <h3>Pacientes</h3>
       <ul id="listaPacientes"></ul>
+    </div>
+  </section>
+
+  <!-- ATENDIMENTOS -->
+  <section id="atendimentos" class="aba" style="display:none;">
+    <div class="card">
+      <h2>Novo Atendimento</h2>
+
+      <select id="nome"></select>
+
+      <input id="feito" placeholder="Procedimento">
+      <input id="proximo" placeholder="Retorno">
+
+      <button onclick="salvar()">Salvar</button>
+    </div>
+
+    <div class="card">
+      <h3>Histórico</h3>
+      <ul id="lista"></ul>
+    </div>
+  </section>
+
+  <!-- CALENDÁRIO -->
+  <section id="calendario" class="aba" style="display:none;">
+    <div class="card">
+      <h2>Calendário</h2>
+      <ul id="listaCalendario"></ul>
     </div>
   </section>
 
@@ -73,7 +99,7 @@
     </div>
 
     <div class="card">
-      <h3>Histórico</h3>
+      <h3>Histórico de Orçamentos</h3>
       <ul id="historicoOrcamentos"></ul>
     </div>
 
