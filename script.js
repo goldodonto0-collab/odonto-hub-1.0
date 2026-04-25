@@ -9,6 +9,8 @@ import {
   updateDoc
 } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
+// ================= FIREBASE =================
+
 const firebaseConfig = {
   apiKey: "SUA_API_KEY",
   authDomain: "agenda-paciente.firebaseapp.com",
@@ -22,6 +24,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // ================= LOGO =================
+
 const LOGO_URL = "https://i.imgur.com/2Bvio9f.jpeg";
 
 // ================= VARIÁVEIS =================
@@ -40,6 +43,17 @@ const dentes = [
   31,32,33,34,35,36,37,38,39,
   49
 ];
+
+// ================= ABA =================
+
+function mostrarAba(aba) {
+  document.querySelectorAll(".aba").forEach(a => a.style.display = "none");
+  document.getElementById(aba).style.display = "block";
+
+  if (aba === "orcamentos") {
+    listarOrcamentos();
+  }
+}
 
 // ================= PACIENTES =================
 
@@ -207,7 +221,6 @@ async function listarOrcamentos() {
       ${data.data} - R$ ${data.total.toFixed(2)}<br>
 
       <button onclick='gerarPDF(${JSON.stringify(data)})'>PDF</button>
-      <button onclick="editar('${d.id}')">Editar</button>
       <button onclick="excluirOrcamento('${d.id}')">Excluir</button>
     `;
 
@@ -215,7 +228,7 @@ async function listarOrcamentos() {
   });
 }
 
-// ================= PDF PROFISSIONAL =================
+// ================= PDF PROFISSIONAL FIXADO =================
 
 function gerarPDF(data) {
   const janela = window.open("", "_blank");
@@ -238,44 +251,42 @@ function gerarPDF(data) {
       <title>Orçamento Odontológico</title>
 
       <style>
+        @page {
+          size: A4;
+          margin: 15mm;
+        }
+
         body {
           font-family: Arial;
           margin: 0;
-          padding: 30px;
+          width: 210mm;
+        }
+
+        .page {
+          padding: 15mm;
         }
 
         .header {
           display: flex;
           justify-content: space-between;
-          align-items: center;
           border-bottom: 2px solid #0b5ed7;
-          padding-bottom: 15px;
-          margin-bottom: 25px;
+          padding-bottom: 10px;
+          margin-bottom: 20px;
         }
 
         .logo img {
-          width: 220px;
+          width: 180px;
         }
 
         .clinic-info {
           text-align: right;
         }
 
-        .clinic-info h2 {
-          margin: 0;
-          color: #0b5ed7;
-        }
-
-        .clinic-info p {
-          margin: 2px 0;
-          font-size: 12px;
-        }
-
         .title {
           text-align: center;
-          font-size: 22px;
-          margin: 20px 0;
+          font-size: 20px;
           font-weight: bold;
+          margin: 15px 0;
         }
 
         table {
@@ -286,90 +297,80 @@ function gerarPDF(data) {
         th {
           background: #0b5ed7;
           color: white;
-          padding: 10px;
+          padding: 8px;
         }
 
         td {
-          padding: 10px;
+          padding: 8px;
           border-bottom: 1px solid #ddd;
         }
 
         .total {
-          margin-top: 20px;
           text-align: right;
           font-size: 18px;
           font-weight: bold;
+          margin-top: 20px;
           color: #0b5ed7;
         }
 
         .footer {
           position: fixed;
-          bottom: 20px;
-          width: 100%;
+          bottom: 10mm;
           text-align: center;
+          width: 100%;
           font-size: 11px;
-          color: #777;
         }
       </style>
     </head>
 
     <body>
 
-      <div class="header">
+      <div class="page">
 
-        <div class="logo">
-          <img src="${LOGO_URL}">
+        <div class="header">
+          <div class="logo">
+            <img src="${LOGO_URL}">
+          </div>
+
+          <div class="clinic-info">
+            <h2>Clínica Odontológica</h2>
+            <p>Atendimento especializado</p>
+          </div>
         </div>
 
-        <div class="clinic-info">
-          <h2>Clínica Odontológica</h2>
-          <p>Atendimento especializado</p>
+        <div class="title">ORÇAMENTO ODONTOLÓGICO</div>
+
+        <p><strong>Paciente:</strong> ${data.paciente}</p>
+        <p><strong>Data:</strong> ${data.data}</p>
+
+        <table>
+          <tr>
+            <th>Dente</th>
+            <th>Procedimento</th>
+            <th>Valor</th>
+          </tr>
+          ${itensHTML}
+        </table>
+
+        <div class="total">
+          Total: R$ ${data.total.toFixed(2)}
+        </div>
+
+        <div class="footer">
+          Sistema odontológico automático
         </div>
 
       </div>
 
-      <div class="title">ORÇAMENTO ODONTOLÓGICO</div>
-
-      <p><strong>Paciente:</strong> ${data.paciente}</p>
-      <p><strong>Data:</strong> ${data.data}</p>
-
-      <table>
-        <tr>
-          <th>Dente</th>
-          <th>Procedimento</th>
-          <th>Valor</th>
-        </tr>
-        ${itensHTML}
-      </table>
-
-      <div class="total">
-        Total: R$ ${data.total.toFixed(2)}
-      </div>
-
-      <div class="footer">
-        Sistema odontológico automático
-      </div>
+      <script>
+        window.onload = () => window.print();
+      </script>
 
     </body>
     </html>
   `);
 
   janela.document.close();
-
-  setTimeout(() => {
-    janela.print();
-    janela.close();
-  }, 500);
-}
-
-// ================= FUNÇÃO CORRIGIDA =================
-function mostrarAba(aba) {
-  document.querySelectorAll(".aba").forEach(a => a.style.display = "none");
-  document.getElementById(aba).style.display = "block";
-
-  if (aba === "orcamentos") {
-    listarOrcamentos();
-  }
 }
 
 // ================= INIT =================
