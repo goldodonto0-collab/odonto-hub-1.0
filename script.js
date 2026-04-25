@@ -25,9 +25,8 @@ const db = getFirestore(app);
 
 // ================= VARIÁVEIS =================
 
-let itens = [];
-let editandoPacienteId = null;
 let editandoAtendimentoId = null;
+let editandoPacienteId = null;
 
 // ================= DENTES =================
 
@@ -47,11 +46,11 @@ window.mostrarAba = (aba) => {
   document.getElementById(aba).style.display = "block";
 };
 
-// ================= PACIENTE =================
+// ================= PACIENTES =================
 
 window.salvarPaciente = async () => {
 
-  const paciente = {
+  const data = {
     nome: document.getElementById("nomePaciente").value,
     telefone: document.getElementById("telefonePaciente").value,
     cpf: document.getElementById("cpfPaciente").value,
@@ -61,13 +60,13 @@ window.salvarPaciente = async () => {
     observacoes: document.getElementById("observacoesPaciente").value
   };
 
-  if (!paciente.nome) return alert("Nome obrigatório");
+  if (!data.nome) return alert("Nome obrigatório");
 
   if (editandoPacienteId) {
-    await updateDoc(doc(db, "pacientes", editandoPacienteId), paciente);
+    await updateDoc(doc(db, "pacientes", editandoPacienteId), data);
     editandoPacienteId = null;
   } else {
-    await addDoc(collection(db, "pacientes"), paciente);
+    await addDoc(collection(db, "pacientes"), data);
   }
 
   limparPaciente();
@@ -75,13 +74,7 @@ window.salvarPaciente = async () => {
 };
 
 function limparPaciente() {
-  document.getElementById("nomePaciente").value = "";
-  document.getElementById("telefonePaciente").value = "";
-  document.getElementById("cpfPaciente").value = "";
-  document.getElementById("rgPaciente").value = "";
-  document.getElementById("nascimentoPaciente").value = "";
-  document.getElementById("enderecoPaciente").value = "";
-  document.getElementById("observacoesPaciente").value = "";
+  document.querySelectorAll("#pacientes input, #pacientes textarea").forEach(e => e.value = "");
 }
 
 // ================= LISTAR PACIENTES =================
@@ -99,22 +92,20 @@ async function listarPacientes() {
   const snap = await getDocs(collection(db, "pacientes"));
 
   snap.forEach(d => {
-    const data = d.data();
+    const p = d.data();
 
     lista.innerHTML += `
       <li>
-        <strong>${data.nome}</strong><br>
+        <strong>${p.nome}</strong><br>
 
-        <button onclick="editarPaciente('${d.id}', '${data.nome}', '${data.telefone || ''}', '${data.cpf || ''}', '${data.rg || ''}', '${data.nascimento || ''}', '${data.endereco || ''}', '${data.observacoes || ''}')">Editar</button>
+        <button onclick="editarPaciente('${d.id}', '${p.nome}', '${p.telefone || ''}', '${p.cpf || ''}', '${p.rg || ''}', '${p.nascimento || ''}', '${p.endereco || ''}', '${p.observacoes || ''}')">Editar</button>
 
         <button onclick="excluirPaciente('${d.id}')">Excluir</button>
-
-        <button onclick="imprimirPaciente('${data.nome}', '${data.telefone || ''}', '${data.cpf || ''}', '${data.endereco || ''}', '${data.observacoes || ''}')">Imprimir</button>
       </li>
     `;
 
-    selectAtend.innerHTML += `<option value="${data.nome}">${data.nome}</option>`;
-    selectOrc.innerHTML += `<option value="${data.nome}">${data.nome}</option>`;
+    selectAtend.innerHTML += `<option value="${p.nome}">${p.nome}</option>`;
+    selectOrc.innerHTML += `<option value="${p.nome}">${p.nome}</option>`;
   });
 }
 
@@ -150,7 +141,7 @@ window.salvar = async () => {
   const feito = document.getElementById("feito").value;
   const proximo = document.getElementById("proximo").value;
 
-  if (!paciente || !feito) return alert("Preencha paciente e procedimento");
+  if (!paciente || !feito) return alert("Preencha os campos");
 
   const data = {
     paciente,
@@ -186,39 +177,55 @@ async function listarAtendimentos() {
   snap.forEach(d => {
     const a = d.data();
 
-    lista.innerHTML += `
-      <li>
-        <strong>${a.paciente}</strong><br>
-        ${a.feito}<br>
-        Retorno: ${a.proximo || "-"}<br>
-        ${a.data}<br>
+    const li = document.createElement("li");
 
-        <button onclick="editarAtendimento('${d.id}', '${a.paciente}', '${a.feito}', '${a.proximo || ""}')">Editar</button>
-        <button onclick="excluirAtendimento('${d.id}')">Excluir</button>
-      </li>
+    li.innerHTML = `
+      <strong>${a.paciente}</strong><br>
+      ${a.feito}<br>
+      Retorno: ${a.proximo || "-"}<br>
+      ${a.data}<br>
+
+      <button class="edit">Editar</button>
+      <button class="del">Excluir</button>
     `;
+
+    li.querySelector(".edit").onclick = () => {
+      document.getElementById("nome").value = a.paciente;
+      document.getElementById("feito").value = a.feito;
+      document.getElementById("proximo").value = a.proximo || "";
+      editandoAtendimentoId = d.id;
+    };
+
+    li.querySelector(".del").onclick = async () => {
+      if (!confirm("Excluir atendimento?")) return;
+      await deleteDoc(doc(db, "atendimentos", d.id));
+      listarAtendimentos();
+    };
+
+    lista.appendChild(li);
   });
 }
 
-// ================= EDITAR ATENDIMENTO =================
+// ================= ODONTOGRAMA =================
 
-window.editarAtendimento = (id, paciente, feito, proximo) => {
+function criarOdontograma() {
+  const el = document.getElementById("odontograma");
+  if (!el) return;
 
-  document.getElementById("nome").value = paciente;
-  document.getElementById("feito").value = feito;
-  document.getElementById("proximo").value = proximo;
+  el.innerHTML = "";
 
-  editandoAtendimentoId = id;
-};
+  dentes.forEach(d => {
+    const div = document.createElement("div");
+    div.className = "dente";
+    div.innerText = d;
 
-// ================= EXCLUIR ATENDIMENTO =================
+    div.onclick = () => {
+      document.getElementById("denteSelecionado").value = d;
+    };
 
-window.excluirAtendimento = async (id) => {
-  if (!confirm("Deseja excluir este atendimento?")) return;
-
-  await deleteDoc(doc(db, "atendimentos", id));
-  listarAtendimentos();
-};
+    el.appendChild(div);
+  });
+}
 
 // ================= INIT =================
 
@@ -226,5 +233,4 @@ window.onload = () => {
   criarOdontograma();
   listarPacientes();
   listarAtendimentos();
-  listarOrcamentos();
 };
