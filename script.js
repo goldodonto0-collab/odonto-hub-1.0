@@ -3,7 +3,10 @@ import {
   getFirestore,
   addDoc,
   collection,
-  getDocs
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
 // ================= FIREBASE =================
@@ -22,7 +25,20 @@ const db = getFirestore(app);
 
 // ================= VARIÁVEIS =================
 
+let pacientesMap = {};
 let itens = [];
+let editandoId = null;
+
+// ================= DENTES =================
+
+const dentes = [
+  18,17,16,15,14,13,12,11,
+  21,22,23,24,25,26,27,28,29,
+  19,
+  48,47,46,45,44,43,42,41,
+  31,32,33,34,35,36,37,38,39,
+  49
+];
 
 // ================= ABA =================
 
@@ -34,29 +50,71 @@ window.mostrarAba = function (aba) {
 // ================= PACIENTES =================
 
 window.salvarPaciente = async function () {
-  const nome = document.getElementById("nomePaciente").value;
+  const paciente = {
+    nome: document.getElementById("nomePaciente").value,
+    telefone: document.getElementById("telefonePaciente").value,
+    cpf: document.getElementById("cpfPaciente").value,
+    rg: document.getElementById("rgPaciente").value,
+    nascimento: document.getElementById("nascimentoPaciente").value,
+    endereco: document.getElementById("enderecoPaciente").value,
+    saude: document.getElementById("saudePaciente").value,
+    observacoes: document.getElementById("observacoesPaciente").value
+  };
 
-  if (!nome) return alert("Nome obrigatório");
+  if (!paciente.nome) return alert("Digite o nome");
 
-  await addDoc(collection(db, "pacientes"), { nome });
+  await addDoc(collection(db, "pacientes"), paciente);
 
   listarPacientes();
 };
 
+// ================= LISTAR PACIENTES =================
+
 async function listarPacientes() {
   const lista = document.getElementById("listaPacientes");
-  const select = document.getElementById("pacienteOrcamento");
+  const selectAtend = document.getElementById("nome");
+  const selectOrc = document.getElementById("pacienteOrcamento");
 
   lista.innerHTML = "";
-  select.innerHTML = "";
+  selectAtend.innerHTML = `<option value="">Selecione o paciente</option>`;
+  selectOrc.innerHTML = `<option value="">Selecione o paciente</option>`;
 
   const snap = await getDocs(collection(db, "pacientes"));
 
   snap.forEach(d => {
     const data = d.data();
 
+    pacientesMap[data.nome] = d.id;
+
     lista.innerHTML += `<li>${data.nome}</li>`;
-    select.innerHTML += `<option>${data.nome}</option>`;
+    selectAtend.innerHTML += `<option>${data.nome}</option>`;
+    selectOrc.innerHTML += `<option>${data.nome}</option>`;
+  });
+}
+
+// ================= ODONTOGRAMA =================
+
+function criarOdontograma() {
+  const el = document.getElementById("odontograma");
+  if (!el) return;
+
+  el.innerHTML = "";
+
+  dentes.forEach(d => {
+    const div = document.createElement("div");
+    div.className = "dente";
+
+    if ([19,29,39,49].includes(d)) {
+      div.classList.add("extra");
+    }
+
+    div.innerText = d;
+
+    div.onclick = () => {
+      document.getElementById("denteSelecionado").value = d;
+    };
+
+    el.appendChild(div);
   });
 }
 
@@ -70,11 +128,10 @@ window.adicionarItemOrcamento = function () {
   if (!dente || !proc || !valor) return alert("Preencha tudo");
 
   itens.push({ dente, proc, valor });
-
-  atualizar();
+  atualizarOrcamento();
 };
 
-function atualizar() {
+function atualizarOrcamento() {
   const lista = document.getElementById("listaItensOrcamento");
   lista.innerHTML = "";
 
@@ -85,8 +142,8 @@ function atualizar() {
 
     lista.innerHTML += `
       <li>
-        ${i.dente} - ${i.proc} - R$ ${i.valor.toFixed(2)}
-        <button onclick="remover(${index})">X</button>
+        Dente ${i.dente} - ${i.proc} - R$ ${i.valor.toFixed(2)}
+        <button onclick="removerItem(${index})">X</button>
       </li>
     `;
   });
@@ -94,35 +151,43 @@ function atualizar() {
   document.getElementById("totalOrcamento").innerText = total.toFixed(2);
 }
 
-window.remover = function (i) {
+window.removerItem = function (i) {
   itens.splice(i, 1);
-  atualizar();
+  atualizarOrcamento();
 };
+
+// ================= SALVAR ORÇAMENTO =================
 
 window.salvarOrcamento = async function () {
   const paciente = document.getElementById("pacienteOrcamento").value;
-
-  const total = itens.reduce((a, b) => a + b.valor, 0);
+  const total = itens.reduce((a,b)=>a+b.valor,0);
 
   if (!paciente) return alert("Selecione paciente");
 
-  await addDoc(collection(db, "orcamentos"), {
+  const data = {
     paciente,
     data: new Date().toLocaleDateString(),
     itens,
     total
-  });
+  };
+
+  if (editandoId) {
+    await updateDoc(doc(db,"orcamentos",editandoId),data);
+    editandoId = null;
+  } else {
+    await addDoc(collection(db,"orcamentos"),data);
+  }
 
   itens = [];
-  atualizar();
-
+  atualizarOrcamento();
   listarOrcamentos();
 };
 
-// ================= LISTAR =================
+// ================= LISTAR ORÇAMENTOS =================
 
 async function listarOrcamentos() {
   const lista = document.getElementById("historicoOrcamentos");
+  if (!lista) return;
 
   lista.innerHTML = "";
 
@@ -133,7 +198,7 @@ async function listarOrcamentos() {
 
     lista.innerHTML += `
       <li>
-        <b>${data.paciente}</b><br>
+        <strong>${data.paciente}</strong><br>
         ${data.data} - R$ ${data.total.toFixed(2)}<br>
         <button onclick='gerarPDF(${JSON.stringify(data)})'>PDF</button>
       </li>
@@ -141,16 +206,15 @@ async function listarOrcamentos() {
   });
 }
 
-// ================= PDF 100% ESTÁVEL =================
+// ================= PDF ORIGINAL (WINDOW PRINT SIMPLES) =================
 
 window.gerarPDF = function (data) {
+  const janela = window.open("", "_blank");
 
-  const el = document.createElement("div");
-
-  let html = "";
+  let itensHTML = "";
 
   data.itens.forEach(i => {
-    html += `
+    itensHTML += `
       <tr>
         <td>${i.dente}</td>
         <td>${i.proc}</td>
@@ -159,42 +223,57 @@ window.gerarPDF = function (data) {
     `;
   });
 
-  el.innerHTML = `
-    <div style="width:210mm;padding:15mm;font-family:Arial;background:white;">
+  janela.document.write(`
+    <html>
+    <head>
+      <title>Orçamento</title>
+      <style>
+        body { font-family: Arial; padding: 20px; }
+        table { width:100%; border-collapse: collapse; }
+        th { background:#0b5ed7; color:white; padding:8px; }
+        td { padding:8px; border-bottom:1px solid #ddd; }
+      </style>
+    </head>
 
-      <h2 style="text-align:center;">ORÇAMENTO ODONTOLÓGICO</h2>
+    <body>
+
+      <h2>Orçamento Odontológico</h2>
 
       <p><b>Paciente:</b> ${data.paciente}</p>
       <p><b>Data:</b> ${data.data}</p>
 
-      <table style="width:100%;border-collapse:collapse;">
-        <tr style="background:#0b5ed7;color:white;">
-          <th>Dente</th><th>Procedimento</th><th>Valor</th>
+      <table>
+        <tr>
+          <th>Dente</th>
+          <th>Procedimento</th>
+          <th>Valor</th>
         </tr>
-        ${html}
+        ${itensHTML}
       </table>
 
-      <h3 style="text-align:right;color:#0b5ed7;">
-        Total: R$ ${data.total.toFixed(2)}
-      </h3>
+      <h3>Total: R$ ${data.total.toFixed(2)}</h3>
 
-    </div>
-  `;
+      <script>
+        window.onload = () => window.print();
+      </script>
 
-  html2pdf()
-    .set({
-      margin: 0,
-      filename: "orcamento.pdf",
-      html2canvas: { scale: 2 },
-      jsPDF: { format: "a4", unit: "mm" }
-    })
-    .from(el)
-    .save();
+    </body>
+    </html>
+  `);
+
+  janela.document.close();
 };
 
 // ================= INIT =================
 
 window.onload = () => {
+  window.salvarPaciente = salvarPaciente;
+  window.adicionarItemOrcamento = adicionarItemOrcamento;
+  window.removerItem = removerItem;
+  window.salvarOrcamento = salvarOrcamento;
+  window.gerarPDF = gerarPDF;
+  window.mostrarAba = mostrarAba;
+
+  criarOdontograma();
   listarPacientes();
-  listarOrcamentos();
 };
