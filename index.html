@@ -7,9 +7,8 @@
 
   <link rel="stylesheet" href="style.css">
 
-  <!-- (opcional) favicon -->
-  <link rel="icon" href="data:,">
-
+  <!-- PDF LIB (ESTÁVEL) -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
@@ -28,22 +27,14 @@
   <!-- PACIENTES -->
   <section id="pacientes" class="aba">
     <div class="card">
-      <h2>Cadastro de Pacientes</h2>
-
+      <h2>Cadastro</h2>
       <input id="nomePaciente" placeholder="Nome">
       <input id="telefonePaciente" placeholder="Telefone">
-      <input id="cpfPaciente" placeholder="CPF">
-      <input id="rgPaciente" placeholder="RG">
-      <input id="nascimentoPaciente" type="date">
-      <input id="enderecoPaciente" placeholder="Endereço">
-      <input id="saudePaciente" placeholder="Saúde">
-      <textarea id="observacoesPaciente" placeholder="Observações"></textarea>
-
       <button onclick="salvarPaciente()">Salvar</button>
     </div>
 
     <div class="card">
-      <h3>Pacientes</h3>
+      <h3>Lista</h3>
       <ul id="listaPacientes"></ul>
     </div>
   </section>
@@ -51,19 +42,10 @@
   <!-- ATENDIMENTOS -->
   <section id="atendimentos" class="aba" style="display:none;">
     <div class="card">
-      <h2>Novo Atendimento</h2>
-
+      <h2>Atendimento</h2>
       <select id="nome"></select>
-
       <input id="feito" placeholder="Procedimento">
-      <input id="proximo" placeholder="Retorno">
-
       <button onclick="salvar()">Salvar</button>
-    </div>
-
-    <div class="card">
-      <h3>Histórico</h3>
-      <ul id="lista"></ul>
     </div>
   </section>
 
@@ -75,16 +57,13 @@
     </div>
   </section>
 
-  <!-- ORÇAMENTOS -->
+  <!-- ORÇAMENTO -->
   <section id="orcamentos" class="aba" style="display:none;">
 
     <div class="card">
-
-      <h2>Orçamento Odontológico</h2>
+      <h2>Orçamento</h2>
 
       <select id="pacienteOrcamento"></select>
-
-      <div id="odontograma" class="odontograma"></div>
 
       <input id="denteSelecionado" placeholder="Dente" readonly>
       <input id="procedimentoOrcamento" placeholder="Procedimento">
@@ -96,22 +75,19 @@
 
       <h3>Total: R$ <span id="totalOrcamento">0.00</span></h3>
 
-      <button onclick="salvarOrcamento()">Salvar Orçamento</button>
+      <button onclick="salvarOrcamento()">Salvar</button>
       <button onclick="gerarPDF()">Gerar PDF</button>
 
     </div>
 
     <div class="card">
-      <h3>Histórico de Orçamentos</h3>
+      <h3>Histórico</h3>
       <ul id="historicoOrcamentos"></ul>
     </div>
 
   </section>
 
 </div>
-
-<!-- 🔥 FIX PRINCIPAL DO SEU ERRO -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <script type="module" src="script.js"></script>
 
