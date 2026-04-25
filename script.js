@@ -215,7 +215,7 @@ async function listarOrcamentos() {
   });
 }
 
-// ================= 🔥 PDF PROFISSIONAL =================
+// ================= PDF PROFISSIONAL =================
 
 function gerarPDF(data) {
   const janela = window.open("", "_blank");
@@ -242,7 +242,6 @@ function gerarPDF(data) {
           font-family: Arial;
           margin: 0;
           padding: 30px;
-          color: #333;
         }
 
         .header {
@@ -256,7 +255,6 @@ function gerarPDF(data) {
 
         .logo img {
           width: 220px;
-          object-fit: contain;
         }
 
         .clinic-info {
@@ -278,11 +276,6 @@ function gerarPDF(data) {
           font-size: 22px;
           margin: 20px 0;
           font-weight: bold;
-        }
-
-        .info {
-          margin-bottom: 20px;
-          font-size: 14px;
         }
 
         table {
@@ -331,17 +324,14 @@ function gerarPDF(data) {
         <div class="clinic-info">
           <h2>Clínica Odontológica</h2>
           <p>Atendimento especializado</p>
-          <p>Telefone: (XX) XXXX-XXXX</p>
         </div>
 
       </div>
 
       <div class="title">ORÇAMENTO ODONTOLÓGICO</div>
 
-      <div class="info">
-        <p><strong>Paciente:</strong> ${data.paciente}</p>
-        <p><strong>Data:</strong> ${data.data}</p>
-      </div>
+      <p><strong>Paciente:</strong> ${data.paciente}</p>
+      <p><strong>Data:</strong> ${data.data}</p>
 
       <table>
         <tr>
@@ -357,7 +347,7 @@ function gerarPDF(data) {
       </div>
 
       <div class="footer">
-        Sistema odontológico - documento gerado automaticamente
+        Sistema odontológico automático
       </div>
 
     </body>
@@ -370,6 +360,16 @@ function gerarPDF(data) {
     janela.print();
     janela.close();
   }, 500);
+}
+
+// ================= FUNÇÃO CORRIGIDA =================
+function mostrarAba(aba) {
+  document.querySelectorAll(".aba").forEach(a => a.style.display = "none");
+  document.getElementById(aba).style.display = "block";
+
+  if (aba === "orcamentos") {
+    listarOrcamentos();
+  }
 }
 
 // ================= INIT =================
