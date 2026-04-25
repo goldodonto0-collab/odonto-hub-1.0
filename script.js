@@ -23,22 +23,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// ================= LOGO =================
+
+const LOGO_URL = "https://i.imgur.com/2Bvio9f.jpeg";
+
 // ================= VARIÁVEIS =================
 
 let pacientesMap = {};
 let itens = [];
 let editandoId = null;
-
-// ================= DENTES =================
-
-const dentes = [
-  18,17,16,15,14,13,12,11,
-  21,22,23,24,25,26,27,28,29,
-  19,
-  48,47,46,45,44,43,42,41,
-  31,32,33,34,35,36,37,38,39,
-  49
-];
 
 // ================= ABA =================
 
@@ -84,37 +77,9 @@ async function listarPacientes() {
   snap.forEach(d => {
     const data = d.data();
 
-    pacientesMap[data.nome] = d.id;
-
     lista.innerHTML += `<li>${data.nome}</li>`;
     selectAtend.innerHTML += `<option>${data.nome}</option>`;
     selectOrc.innerHTML += `<option>${data.nome}</option>`;
-  });
-}
-
-// ================= ODONTOGRAMA =================
-
-function criarOdontograma() {
-  const el = document.getElementById("odontograma");
-  if (!el) return;
-
-  el.innerHTML = "";
-
-  dentes.forEach(d => {
-    const div = document.createElement("div");
-    div.className = "dente";
-
-    if ([19,29,39,49].includes(d)) {
-      div.classList.add("extra");
-    }
-
-    div.innerText = d;
-
-    div.onclick = () => {
-      document.getElementById("denteSelecionado").value = d;
-    };
-
-    el.appendChild(div);
   });
 }
 
@@ -156,7 +121,7 @@ window.removerItem = function (i) {
   atualizarOrcamento();
 };
 
-// ================= SALVAR ORÇAMENTO =================
+// ================= SALVAR =================
 
 window.salvarOrcamento = async function () {
   const paciente = document.getElementById("pacienteOrcamento").value;
@@ -171,20 +136,14 @@ window.salvarOrcamento = async function () {
     total
   };
 
-  if (editandoId) {
-    await updateDoc(doc(db,"orcamentos",editandoId),data);
-    editandoId = null;
-  } else {
-    await addDoc(collection(db,"orcamentos"),data);
-  }
+  await addDoc(collection(db,"orcamentos"),data);
 
   itens = [];
   atualizarOrcamento();
-
-  listarOrcamentos(); // 🔥 ATUALIZA HISTÓRICO
+  listarOrcamentos();
 };
 
-// ================= HISTÓRICO DE ORÇAMENTOS =================
+// ================= HISTÓRICO =================
 
 async function listarOrcamentos() {
   const lista = document.getElementById("historicoOrcamentos");
@@ -197,22 +156,20 @@ async function listarOrcamentos() {
   snap.forEach(d => {
     const data = d.data();
 
-    const li = document.createElement("li");
-
-    li.innerHTML = `
-      <strong>${data.paciente}</strong><br>
-      ${data.data} - R$ ${data.total.toFixed(2)}<br>
-
-      <button onclick='gerarPDF(${JSON.stringify(data)})'>PDF</button>
+    lista.innerHTML += `
+      <li>
+        <strong>${data.paciente}</strong><br>
+        ${data.data} - R$ ${data.total.toFixed(2)}<br>
+        <button onclick='gerarPDF(${JSON.stringify(data)})'>PDF</button>
+      </li>
     `;
-
-    lista.appendChild(li);
   });
 }
 
-// ================= PDF SIMPLES (ESTÁVEL) =================
+// ================= PDF PROFISSIONAL COM LOGO =================
 
 window.gerarPDF = function (data) {
+
   const janela = window.open("", "_blank");
 
   let itensHTML = "";
@@ -230,21 +187,88 @@ window.gerarPDF = function (data) {
   janela.document.write(`
     <html>
     <head>
-      <title>Orçamento</title>
+      <title>Orçamento Odontológico</title>
+
       <style>
-        body { font-family: Arial; padding: 20px; }
-        table { width:100%; border-collapse: collapse; }
-        th { background:#0b5ed7; color:white; padding:8px; }
-        td { padding:8px; border-bottom:1px solid #ddd; }
+        @page {
+          size: A4;
+          margin: 20mm;
+        }
+
+        body {
+          font-family: Arial;
+          margin: 0;
+          padding: 0;
+          color: #333;
+        }
+
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-bottom: 2px solid #0b5ed7;
+          padding-bottom: 10px;
+          margin-bottom: 20px;
+        }
+
+        .logo img {
+          width: 160px;
+        }
+
+        .info {
+          text-align: right;
+        }
+
+        .info h2 {
+          margin: 0;
+          color: #0b5ed7;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 15px;
+        }
+
+        th {
+          background: #0b5ed7;
+          color: white;
+          padding: 10px;
+        }
+
+        td {
+          padding: 8px;
+          border-bottom: 1px solid #ddd;
+        }
+
+        .total {
+          text-align: right;
+          font-size: 18px;
+          margin-top: 20px;
+          color: #0b5ed7;
+          font-weight: bold;
+        }
+
       </style>
     </head>
 
     <body>
 
-      <h2>Orçamento Odontológico</h2>
+      <div class="header">
 
-      <p><b>Paciente:</b> ${data.paciente}</p>
-      <p><b>Data:</b> ${data.data}</p>
+        <div class="logo">
+          <img src="${LOGO_URL}">
+        </div>
+
+        <div class="info">
+          <h2>Clínica Odontológica</h2>
+          <p>Orçamento Profissional</p>
+        </div>
+
+      </div>
+
+      <p><strong>Paciente:</strong> ${data.paciente}</p>
+      <p><strong>Data:</strong> ${data.data}</p>
 
       <table>
         <tr>
@@ -255,7 +279,9 @@ window.gerarPDF = function (data) {
         ${itensHTML}
       </table>
 
-      <h3>Total: R$ ${data.total.toFixed(2)}</h3>
+      <div class="total">
+        Total: R$ ${data.total.toFixed(2)}
+      </div>
 
       <script>
         window.onload = () => window.print();
@@ -278,7 +304,6 @@ window.onload = () => {
   window.gerarPDF = gerarPDF;
   window.mostrarAba = mostrarAba;
 
-  criarOdontograma();
   listarPacientes();
-  listarOrcamentos(); // 🔥 IMPORTANTE
+  listarOrcamentos();
 };
