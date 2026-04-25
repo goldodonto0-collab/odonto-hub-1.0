@@ -4,9 +4,8 @@ import {
   addDoc,
   collection,
   getDocs,
-  deleteDoc,
-  doc,
-  updateDoc
+  updateDoc,
+  doc
 } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
 // ================= FIREBASE =================
@@ -29,98 +28,7 @@ const LOGO_URL = "https://i.imgur.com/2Bvio9f.jpeg";
 
 // ================= VARIÁVEIS =================
 
-let pacientesMap = {};
 let itens = [];
-let editandoId = null;
-
-// ================= DENTES =================
-
-const dentes = [
-  18,17,16,15,14,13,12,11,
-  21,22,23,24,25,26,27,28,29,
-  19,
-  48,47,46,45,44,43,42,41,
-  31,32,33,34,35,36,37,38,39,
-  49
-];
-
-// ================= ABA (NÃO MEXIDA) =================
-
-window.mostrarAba = function (aba) {
-  document.querySelectorAll(".aba").forEach(a => a.style.display = "none");
-  document.getElementById(aba).style.display = "block";
-};
-
-// ================= PACIENTES =================
-
-window.salvarPaciente = async function () {
-  const paciente = {
-    nome: document.getElementById("nomePaciente").value,
-    telefone: document.getElementById("telefonePaciente").value,
-    cpf: document.getElementById("cpfPaciente").value,
-    rg: document.getElementById("rgPaciente").value,
-    nascimento: document.getElementById("nascimentoPaciente").value,
-    endereco: document.getElementById("enderecoPaciente").value,
-    saude: document.getElementById("saudePaciente").value,
-    observacoes: document.getElementById("observacoesPaciente").value
-  };
-
-  if (!paciente.nome) return alert("Digite o nome");
-
-  await addDoc(collection(db, "pacientes"), paciente);
-
-  listarPacientes();
-};
-
-// ================= LISTAR PACIENTES =================
-
-async function listarPacientes() {
-  const lista = document.getElementById("listaPacientes");
-  const selectAtend = document.getElementById("nome");
-  const selectOrc = document.getElementById("pacienteOrcamento");
-
-  lista.innerHTML = "";
-  selectAtend.innerHTML = `<option value="">Selecione o paciente</option>`;
-  selectOrc.innerHTML = `<option value="">Selecione o paciente</option>`;
-
-  const snap = await getDocs(collection(db, "pacientes"));
-
-  snap.forEach(d => {
-    const data = d.data();
-
-    pacientesMap[data.nome] = d.id;
-
-    lista.innerHTML += `<li>${data.nome}</li>`;
-    selectAtend.innerHTML += `<option>${data.nome}</option>`;
-    selectOrc.innerHTML += `<option>${data.nome}</option>`;
-  });
-}
-
-// ================= ODONTOGRAMA (ORIGINAL) =================
-
-function criarOdontograma() {
-  const el = document.getElementById("odontograma");
-  if (!el) return;
-
-  el.innerHTML = "";
-
-  dentes.forEach(d => {
-    const div = document.createElement("div");
-    div.className = "dente";
-
-    if ([19,29,39,49].includes(d)) {
-      div.classList.add("extra");
-    }
-
-    div.innerText = d;
-
-    div.onclick = () => {
-      document.getElementById("denteSelecionado").value = d;
-    };
-
-    el.appendChild(div);
-  });
-}
 
 // ================= ORÇAMENTO =================
 
@@ -168,14 +76,12 @@ window.salvarOrcamento = async function () {
 
   if (!paciente) return alert("Selecione paciente");
 
-  const data = {
+  await addDoc(collection(db,"orcamentos"),{
     paciente,
     data: new Date().toLocaleDateString(),
     itens,
     total
-  };
-
-  await addDoc(collection(db,"orcamentos"),data);
+  });
 
   itens = [];
   atualizarOrcamento();
@@ -205,11 +111,9 @@ async function listarOrcamentos() {
   });
 }
 
-// ================= PDF COM LOGO (SÓ ISSO FOI MELHORADO) =================
+// ================= PDF PROFISSIONAL (SEM TABELA TORTA) =================
 
 window.gerarPDF = function (data) {
-
-  const janela = window.open("", "_blank");
 
   let itensHTML = "";
 
@@ -223,79 +127,49 @@ window.gerarPDF = function (data) {
     `;
   });
 
-  janela.document.write(`
-    <html>
-    <head>
-      <title>Orçamento</title>
-      <style>
-        body { font-family: Arial; padding: 20px; }
-        table { width:100%; border-collapse: collapse; }
-        th { background:#0b5ed7; color:white; padding:8px; }
-        td { padding:8px; border-bottom:1px solid #ddd; }
+  const conteudo = `
+  <div style="font-family: Arial; padding: 20px; width: 210mm;">
 
-        .header {
-          display:flex;
-          justify-content:space-between;
-          align-items:center;
-          border-bottom:2px solid #0b5ed7;
-          margin-bottom:15px;
-          padding-bottom:10px;
-        }
-
-        .logo img { width:140px; }
-
-        .info { text-align:right; }
-      </style>
-    </head>
-
-    <body>
-
-      <div class="header">
-        <div class="logo">
-          <img src="${LOGO_URL}">
-        </div>
-
-        <div class="info">
-          <h3>Clínica Odontológica</h3>
-        </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0b5ed7; padding-bottom:10px;">
+      <img src="${LOGO_URL}" style="width:150px;">
+      <div style="text-align:right;">
+        <h2 style="margin:0; color:#0b5ed7;">Clínica Odontológica</h2>
+        <p style="margin:0;">Orçamento Profissional</p>
       </div>
+    </div>
 
-      <p><b>Paciente:</b> ${data.paciente}</p>
-      <p><b>Data:</b> ${data.data}</p>
+    <p><strong>Paciente:</strong> ${data.paciente}</p>
+    <p><strong>Data:</strong> ${data.data}</p>
 
-      <table>
-        <tr>
-          <th>Dente</th>
-          <th>Procedimento</th>
-          <th>Valor</th>
-        </tr>
-        ${itensHTML}
-      </table>
+    <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+      <tr style="background:#0b5ed7; color:white;">
+        <th style="padding:8px;">Dente</th>
+        <th style="padding:8px;">Procedimento</th>
+        <th style="padding:8px;">Valor</th>
+      </tr>
+      ${itensHTML}
+    </table>
 
-      <h3>Total: R$ ${data.total.toFixed(2)}</h3>
+    <h3 style="text-align:right; margin-top:20px; color:#0b5ed7;">
+      Total: R$ ${data.total.toFixed(2)}
+    </h3>
 
-      <script>
-        window.onload = () => window.print();
-      </script>
+  </div>
+  `;
 
-    </body>
-    </html>
-  `);
+  const opt = {
+    margin: 0,
+    filename: `orcamento-${data.paciente}.pdf`,
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: { scale: 3, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
 
-  janela.document.close();
+  html2pdf().set(opt).from(conteudo).save();
 };
 
 // ================= INIT =================
 
 window.onload = () => {
-  window.salvarPaciente = salvarPaciente;
-  window.adicionarItemOrcamento = adicionarItemOrcamento;
-  window.removerItem = removerItem;
-  window.salvarOrcamento = salvarOrcamento;
-  window.gerarPDF = gerarPDF;
-  window.mostrarAba = mostrarAba;
-
-  criarOdontograma();
-  listarPacientes();
   listarOrcamentos();
 };
