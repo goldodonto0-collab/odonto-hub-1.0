@@ -59,16 +59,14 @@ async function salvarPaciente() {
   listarPacientes();
 }
 
-// ================= LISTAR PACIENTES =================
+// ================= LISTAR =================
 
 async function listarPacientes() {
   const lista = document.getElementById("listaPacientes");
-  const selectAtend = document.getElementById("nome");
-  const selectOrc = document.getElementById("pacienteOrcamento");
+  const select = document.getElementById("pacienteOrcamento");
 
   lista.innerHTML = "";
-  selectAtend.innerHTML = `<option value="">Selecione o paciente</option>`;
-  selectOrc.innerHTML = `<option value="">Selecione o paciente</option>`;
+  select.innerHTML = `<option value="">Selecione o paciente</option>`;
 
   const snap = await getDocs(collection(db, "pacientes"));
 
@@ -81,72 +79,10 @@ async function listarPacientes() {
     li.innerHTML = `<strong>${data.nome}</strong>`;
     lista.appendChild(li);
 
-    const opt1 = document.createElement("option");
-    opt1.value = data.nome;
-    opt1.textContent = data.nome;
-    selectAtend.appendChild(opt1);
-
-    const opt2 = document.createElement("option");
-    opt2.value = data.nome;
-    opt2.textContent = data.nome;
-    selectOrc.appendChild(opt2);
-  });
-}
-
-// ================= ATENDIMENTOS =================
-
-async function salvar() {
-  const nome = document.getElementById("nome").value;
-  const feito = document.getElementById("feito").value;
-  const proximo = document.getElementById("proximo").value;
-
-  const pacienteId = pacientesMap[nome];
-  if (!pacienteId) return alert("Selecione paciente");
-
-  await addDoc(collection(db, "atendimentos"), {
-    nome,
-    feito,
-    proximo,
-    pacienteId,
-    data: new Date().toLocaleDateString()
-  });
-
-  listar();
-}
-
-// ================= LISTA ATENDIMENTOS =================
-
-async function listar() {
-  const lista = document.getElementById("lista");
-  lista.innerHTML = "";
-
-  const snap = await getDocs(collection(db, "atendimentos"));
-
-  snap.forEach(d => {
-    const data = d.data();
-
-    const li = document.createElement("li");
-    li.innerHTML = `${data.nome} - ${data.feito} - ${data.proximo}`;
-    lista.appendChild(li);
-  });
-}
-
-// ================= CALENDÁRIO =================
-
-async function carregarCalendario() {
-  const lista = document.getElementById("listaCalendario");
-  lista.innerHTML = "";
-
-  const snap = await getDocs(collection(db, "atendimentos"));
-
-  snap.forEach(d => {
-    const data = d.data();
-
-    if (data.proximo) {
-      const li = document.createElement("li");
-      li.innerHTML = `${data.nome} - Retorno: ${data.proximo}`;
-      lista.appendChild(li);
-    }
+    const opt = document.createElement("option");
+    opt.value = data.nome;
+    opt.textContent = data.nome;
+    select.appendChild(opt);
   });
 }
 
@@ -239,42 +175,49 @@ async function salvarOrcamento() {
   listarOrcamentos();
 }
 
-async function listarOrcamentos() {
-  const lista = document.getElementById("historicoOrcamentos");
-  lista.innerHTML = "";
+// ================= PDF ORÇAMENTO =================
 
-  const snap = await getDocs(collection(db,"orcamentos"));
+function gerarPDFOrcamento() {
+  const paciente = document.getElementById("pacienteOrcamento").value;
+  const total = document.getElementById("totalOrcamento").innerText;
 
-  snap.forEach(d => {
-    const data = d.data();
+  if (!paciente) return alert("Selecione o paciente");
 
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <strong>${data.paciente}</strong><br>
-      ${data.data} - R$ ${data.total.toFixed(2)}
-      <button onclick="editar('${d.id}')">Editar</button>
-      <button onclick="excluirOrcamento('${d.id}')">Excluir</button>
-    `;
-    lista.appendChild(li);
+  let itensHTML = "";
+
+  document.querySelectorAll("#listaItensOrcamento li").forEach(li => {
+    itensHTML += `<p>${li.innerText}</p>`;
   });
-}
 
-async function editar(id) {
-  const snap = await getDocs(collection(db,"orcamentos"));
+  const janela = window.open("", "_blank");
 
-  snap.forEach(d => {
-    if (d.id === id) {
-      itens = d.data().itens;
-      editandoId = id;
-      atualizarOrcamento();
-      mostrarAba("orcamentos");
-    }
-  });
-}
+  janela.document.write(`
+    <html>
+      <head>
+        <title>Orçamento Odontológico</title>
+        <style>
+          body { font-family: Arial; padding: 30px; }
+          h1 { text-align: center; }
+          p { margin: 5px 0; }
+          .total { margin-top: 20px; font-size: 20px; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <h1>Orçamento Odontológico</h1>
+        <p><strong>Paciente:</strong> ${paciente}</p>
+        <hr>
+        ${itensHTML}
+        <div class="total">Total: R$ ${total}</div>
+      </body>
+    </html>
+  `);
 
-async function excluirOrcamento(id) {
-  await deleteDoc(doc(db,"orcamentos",id));
-  listarOrcamentos();
+  janela.document.close();
+
+  setTimeout(() => {
+    janela.print();
+    janela.close();
+  }, 500);
 }
 
 // ================= ABAS =================
@@ -282,24 +225,18 @@ async function excluirOrcamento(id) {
 function mostrarAba(aba) {
   document.querySelectorAll(".aba").forEach(a => a.style.display = "none");
   document.getElementById(aba).style.display = "block";
-
-  if (aba === "calendario") carregarCalendario();
-  if (aba === "orcamentos") listarOrcamentos();
 }
 
-// ================= INIT (CORRIGIDO) =================
+// ================= INIT =================
 
-window.onload = async () => {
+window.onload = () => {
   window.salvarPaciente = salvarPaciente;
-  window.salvar = salvar;
-  window.mostrarAba = mostrarAba;
   window.adicionarItemOrcamento = adicionarItemOrcamento;
   window.removerItem = removerItem;
   window.salvarOrcamento = salvarOrcamento;
-  window.editar = editar;
-  window.excluirOrcamento = excluirOrcamento;
+  window.gerarPDFOrcamento = gerarPDFOrcamento;
+  window.mostrarAba = mostrarAba;
 
   criarOdontograma();
-  await listarPacientes();
-  await listar();
+  listarPacientes();
 };
