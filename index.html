@@ -4,15 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Odonto Hub</title>
+
   <link rel="stylesheet" href="style.css">
+
+  <!-- (opcional) favicon -->
+  <link rel="icon" href="data:,">
+
 </head>
+
 <body>
 
 <div class="container">
 
   <h1>Odonto Hub</h1>
 
-  <!-- MENU -->
   <div class="tabs">
     <button onclick="mostrarAba('pacientes')">Pacientes</button>
     <button onclick="mostrarAba('atendimentos')">Atendimentos</button>
@@ -77,10 +82,8 @@
 
       <h2>Orçamento Odontológico</h2>
 
-      <!-- paciente -->
       <select id="pacienteOrcamento"></select>
 
-      <!-- odontograma -->
       <div id="odontograma" class="odontograma"></div>
 
       <input id="denteSelecionado" placeholder="Dente" readonly>
@@ -94,11 +97,10 @@
       <h3>Total: R$ <span id="totalOrcamento">0.00</span></h3>
 
       <button onclick="salvarOrcamento()">Salvar Orçamento</button>
-      <button onclick="gerarPDFOrcamento()">Gerar PDF</button>
+      <button onclick="gerarPDF()">Gerar PDF</button>
 
     </div>
 
-    <!-- HISTÓRICO COM PDF -->
     <div class="card">
       <h3>Histórico de Orçamentos</h3>
       <ul id="historicoOrcamentos"></ul>
@@ -107,6 +109,9 @@
   </section>
 
 </div>
+
+<!-- 🔥 FIX PRINCIPAL DO SEU ERRO -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <script type="module" src="script.js"></script>
 
