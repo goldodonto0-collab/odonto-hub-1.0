@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Odonto Hub</title>
+
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -16,7 +17,6 @@
   <div class="tabs">
     <button onclick="mostrarAba('pacientes')">Pacientes</button>
     <button onclick="mostrarAba('atendimentos')">Atendimentos</button>
-    <button onclick="mostrarAba('calendario')">Calendário</button>
   </div>
 
   <!-- PACIENTES -->
@@ -60,27 +60,6 @@
     <div class="card">
       <h3>Histórico</h3>
       <ul id="listaAtendimentos"></ul>
-    </div>
-
-  </section>
-
-  <!-- CALENDÁRIO -->
-  <section id="calendario" class="aba" style="display:none;">
-
-    <div class="card">
-      <h2>Novo Agendamento</h2>
-
-      <select id="nomeAgenda"></select>
-
-      <input type="date" id="dataAgendamento">
-      <input id="descricaoAgendamento" placeholder="Descrição">
-
-      <button onclick="salvarAgendamento()">Salvar</button>
-    </div>
-
-    <div class="card">
-      <h3>Agenda</h3>
-      <ul id="listaCalendario"></ul>
     </div>
 
   </section>
