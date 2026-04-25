@@ -21,9 +21,24 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ================= PACIENTES =================
+// ================= VARIÁVEIS =================
 
 let pacientesMap = {};
+let itens = [];
+let editandoId = null;
+
+// ================= DENTES =================
+
+const dentes = [
+  18,17,16,15,14,13,12,11,
+  21,22,23,24,25,26,27,28,29,
+  19,
+  48,47,46,45,44,43,42,41,
+  31,32,33,34,35,36,37,38,39,
+  49
+];
+
+// ================= PACIENTES =================
 
 async function salvarPaciente() {
   const paciente = {
@@ -37,17 +52,11 @@ async function salvarPaciente() {
     observacoes: document.getElementById("observacoesPaciente").value
   };
 
-  if (!paciente.nome.trim()) return alert("Digite o nome");
+  if (!paciente.nome) return alert("Digite o nome");
 
   await addDoc(collection(db, "pacientes"), paciente);
 
-  limparCamposPacientes();
   listarPacientes();
-}
-
-function limparCamposPacientes() {
-  document.querySelectorAll("#pacientes input, #pacientes textarea")
-    .forEach(i => i.value = "");
 }
 
 // ================= LISTAR PACIENTES =================
@@ -105,6 +114,8 @@ async function salvar() {
   listar();
 }
 
+// ================= LISTA ATENDIMENTOS =================
+
 async function listar() {
   const lista = document.getElementById("lista");
   lista.innerHTML = "";
@@ -141,18 +152,6 @@ async function carregarCalendario() {
 
 // ================= ODONTOGRAMA =================
 
-let itens = [];
-let editandoId = null;
-
-const dentes = [
-  18,17,16,15,14,13,12,11,
-  21,22,23,24,25,26,27,28,29,
-  19,
-  48,47,46,45,44,43,42,41,
-  31,32,33,34,35,36,37,38,39,
-  49
-];
-
 function criarOdontograma() {
   const el = document.getElementById("odontograma");
   if (!el) return;
@@ -163,7 +162,6 @@ function criarOdontograma() {
     const div = document.createElement("div");
     div.className = "dente";
 
-    // destaca dentes extras
     if ([19,29,39,49].includes(d)) {
       div.classList.add("extra");
     }
@@ -203,16 +201,15 @@ function atualizarOrcamento() {
     const li = document.createElement("li");
     li.innerHTML = `
       Dente ${i.dente} - ${i.proc} - R$ ${i.valor.toFixed(2)}
-      <button onclick="remover(${index})">X</button>
+      <button onclick="removerItem(${index})">X</button>
     `;
-
     lista.appendChild(li);
   });
 
   document.getElementById("totalOrcamento").innerText = total.toFixed(2);
 }
 
-function remover(i) {
+function removerItem(i) {
   itens.splice(i, 1);
   atualizarOrcamento();
 }
@@ -231,10 +228,10 @@ async function salvarOrcamento() {
   };
 
   if (editandoId) {
-    await updateDoc(doc(db, "orcamentos", editandoId), data);
+    await updateDoc(doc(db,"orcamentos",editandoId),data);
     editandoId = null;
   } else {
-    await addDoc(collection(db, "orcamentos"), data);
+    await addDoc(collection(db,"orcamentos"),data);
   }
 
   itens = [];
@@ -246,7 +243,7 @@ async function listarOrcamentos() {
   const lista = document.getElementById("historicoOrcamentos");
   lista.innerHTML = "";
 
-  const snap = await getDocs(collection(db, "orcamentos"));
+  const snap = await getDocs(collection(db,"orcamentos"));
 
   snap.forEach(d => {
     const data = d.data();
@@ -258,13 +255,12 @@ async function listarOrcamentos() {
       <button onclick="editar('${d.id}')">Editar</button>
       <button onclick="excluirOrcamento('${d.id}')">Excluir</button>
     `;
-
     lista.appendChild(li);
   });
 }
 
 async function editar(id) {
-  const snap = await getDocs(collection(db, "orcamentos"));
+  const snap = await getDocs(collection(db,"orcamentos"));
 
   snap.forEach(d => {
     if (d.id === id) {
@@ -277,7 +273,7 @@ async function editar(id) {
 }
 
 async function excluirOrcamento(id) {
-  await deleteDoc(doc(db, "orcamentos", id));
+  await deleteDoc(doc(db,"orcamentos",id));
   listarOrcamentos();
 }
 
@@ -291,17 +287,19 @@ function mostrarAba(aba) {
   if (aba === "orcamentos") listarOrcamentos();
 }
 
-// ================= INIT =================
+// ================= INIT (CORRIGIDO) =================
 
-window.salvarPaciente = salvarPaciente;
-window.salvar = salvar;
-window.mostrarAba = mostrarAba;
-window.adicionarItemOrcamento = adicionarItemOrcamento;
-window.remover = remover;
-window.salvarOrcamento = salvarOrcamento;
-window.editar = editar;
-window.excluirOrcamento = excluirOrcamento;
+window.onload = async () => {
+  window.salvarPaciente = salvarPaciente;
+  window.salvar = salvar;
+  window.mostrarAba = mostrarAba;
+  window.adicionarItemOrcamento = adicionarItemOrcamento;
+  window.removerItem = removerItem;
+  window.salvarOrcamento = salvarOrcamento;
+  window.editar = editar;
+  window.excluirOrcamento = excluirOrcamento;
 
-criarOdontograma();
-listarPacientes();
-listar();
+  criarOdontograma();
+  await listarPacientes();
+  await listar();
+};
