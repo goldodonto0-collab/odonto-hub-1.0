@@ -9,8 +9,6 @@ import {
   updateDoc
 } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
-// ================= FIREBASE =================
-
 const firebaseConfig = {
   apiKey: "SUA_API_KEY",
   authDomain: "agenda-paciente.firebaseapp.com",
@@ -67,11 +65,9 @@ async function listarPacientes() {
 
   const lista = document.getElementById("listaPacientes");
   const sel = document.getElementById("nome");
-  const sel2 = document.getElementById("nomeAgenda");
 
   lista.innerHTML = "";
   sel.innerHTML = `<option value="">Selecione</option>`;
-  sel2.innerHTML = `<option value="">Selecione</option>`;
 
   const snap = await getDocs(collection(db,"pacientes"));
 
@@ -88,11 +84,10 @@ async function listarPacientes() {
     `;
 
     sel.innerHTML += `<option value="${p.nome}">${p.nome}</option>`;
-    sel2.innerHTML += `<option value="${p.nome}">${p.nome}</option>`;
   });
 }
 
-// ================= EDITAR / EXCLUIR PACIENTE =================
+// ================= EDITAR / EXCLUIR =================
 
 window.editarPaciente = (id,nome) => {
   document.getElementById("nomePaciente").value = nome;
@@ -164,47 +159,9 @@ async function listarAtendimentos() {
   });
 }
 
-// ================= CALENDÁRIO =================
-
-window.salvarAgendamento = async () => {
-
-  const data = {
-    paciente: document.getElementById("nomeAgenda").value,
-    data: document.getElementById("dataAgendamento").value,
-    descricao: document.getElementById("descricaoAgendamento").value
-  };
-
-  await addDoc(collection(db,"agendamentos"),data);
-
-  listarAgendamentos();
-};
-
-// ================= LISTAR CALENDÁRIO =================
-
-async function listarAgendamentos() {
-
-  const lista = document.getElementById("listaCalendario");
-  lista.innerHTML = "";
-
-  const snap = await getDocs(collection(db,"agendamentos"));
-
-  snap.forEach(d => {
-    const a = d.data();
-
-    lista.innerHTML += `
-      <li>
-        <strong>${a.data}</strong><br>
-        ${a.paciente}<br>
-        ${a.descricao || ""}
-      </li>
-    `;
-  });
-}
-
 // ================= INIT =================
 
 window.onload = () => {
   listarPacientes();
   listarAtendimentos();
-  listarAgendamentos();
 };
