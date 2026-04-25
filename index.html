@@ -84,8 +84,7 @@
         <!-- ODONTOGRAMA -->
         <div id="odontograma" class="odontograma"></div>
 
-        <!-- CAMPOS -->
-        <input id="denteSelecionado" type="text" placeholder="Dente" readonly>
+        <input id="denteSelecionado" type="text" placeholder="Dente selecionado" readonly>
         <input id="procedimentoOrcamento" type="text" placeholder="Procedimento">
         <input id="valorOrcamento" type="number" placeholder="Valor">
 
@@ -95,7 +94,10 @@
 
         <h3>Total: R$ <span id="totalOrcamento">0.00</span></h3>
 
+        <!-- 🔥 BOTÃO PDF -->
         <button type="button" onclick="salvarOrcamento()">Salvar Orçamento</button>
+        <button type="button" onclick="gerarPDFOrcamento()">Gerar PDF do Orçamento</button>
+
       </div>
 
       <div class="card">
@@ -104,14 +106,6 @@
       </div>
     </section>
 
-  </div>
-
-  <!-- MODAL -->
-  <div id="modalFicha" class="modal" style="display:none;">
-    <div class="modal-conteudo">
-      <span class="fechar" onclick="fecharFicha()">×</span>
-      <div id="conteudoFicha"></div>
-    </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
