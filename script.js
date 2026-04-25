@@ -40,12 +40,14 @@ async function salvarPaciente() {
   if (!paciente.nome.trim()) return alert("Digite o nome");
 
   await addDoc(collection(db, "pacientes"), paciente);
-  limparPacientes();
+
+  limparCamposPacientes();
   listarPacientes();
 }
 
-function limparPacientes() {
-  document.querySelectorAll("#pacientes input, #pacientes textarea").forEach(i => i.value = "");
+function limparCamposPacientes() {
+  document.querySelectorAll("#pacientes input, #pacientes textarea")
+    .forEach(i => i.value = "");
 }
 
 // ================= LISTAR PACIENTES =================
@@ -92,7 +94,7 @@ async function salvar() {
   const pacienteId = pacientesMap[nome];
   if (!pacienteId) return alert("Selecione paciente");
 
-  await addDoc(collection(db,"atendimentos"),{
+  await addDoc(collection(db, "atendimentos"), {
     nome,
     feito,
     proximo,
@@ -107,7 +109,7 @@ async function listar() {
   const lista = document.getElementById("lista");
   lista.innerHTML = "";
 
-  const snap = await getDocs(collection(db,"atendimentos"));
+  const snap = await getDocs(collection(db, "atendimentos"));
 
   snap.forEach(d => {
     const data = d.data();
@@ -124,7 +126,7 @@ async function carregarCalendario() {
   const lista = document.getElementById("listaCalendario");
   lista.innerHTML = "";
 
-  const snap = await getDocs(collection(db,"atendimentos"));
+  const snap = await getDocs(collection(db, "atendimentos"));
 
   snap.forEach(d => {
     const data = d.data();
@@ -137,14 +139,18 @@ async function carregarCalendario() {
   });
 }
 
-// ================= ORÇAMENTOS =================
+// ================= ODONTOGRAMA =================
 
 let itens = [];
 let editandoId = null;
 
 const dentes = [
-  18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28,
-  48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38
+  18,17,16,15,14,13,12,11,
+  21,22,23,24,25,26,27,28,29,
+  19,
+  48,47,46,45,44,43,42,41,
+  31,32,33,34,35,36,37,38,39,
+  49
 ];
 
 function criarOdontograma() {
@@ -156,13 +162,23 @@ function criarOdontograma() {
   dentes.forEach(d => {
     const div = document.createElement("div");
     div.className = "dente";
+
+    // destaca dentes extras
+    if ([19,29,39,49].includes(d)) {
+      div.classList.add("extra");
+    }
+
     div.innerText = d;
+
     div.onclick = () => {
       document.getElementById("denteSelecionado").value = d;
     };
+
     el.appendChild(div);
   });
 }
+
+// ================= ORÇAMENTO =================
 
 function adicionarItemOrcamento() {
   const dente = document.getElementById("denteSelecionado").value;
@@ -189,6 +205,7 @@ function atualizarOrcamento() {
       Dente ${i.dente} - ${i.proc} - R$ ${i.valor.toFixed(2)}
       <button onclick="remover(${index})">X</button>
     `;
+
     lista.appendChild(li);
   });
 
@@ -196,7 +213,7 @@ function atualizarOrcamento() {
 }
 
 function remover(i) {
-  itens.splice(i,1);
+  itens.splice(i, 1);
   atualizarOrcamento();
 }
 
@@ -214,10 +231,10 @@ async function salvarOrcamento() {
   };
 
   if (editandoId) {
-    await updateDoc(doc(db,"orcamentos",editandoId),data);
+    await updateDoc(doc(db, "orcamentos", editandoId), data);
     editandoId = null;
   } else {
-    await addDoc(collection(db,"orcamentos"),data);
+    await addDoc(collection(db, "orcamentos"), data);
   }
 
   itens = [];
@@ -229,7 +246,7 @@ async function listarOrcamentos() {
   const lista = document.getElementById("historicoOrcamentos");
   lista.innerHTML = "";
 
-  const snap = await getDocs(collection(db,"orcamentos"));
+  const snap = await getDocs(collection(db, "orcamentos"));
 
   snap.forEach(d => {
     const data = d.data();
@@ -241,12 +258,13 @@ async function listarOrcamentos() {
       <button onclick="editar('${d.id}')">Editar</button>
       <button onclick="excluirOrcamento('${d.id}')">Excluir</button>
     `;
+
     lista.appendChild(li);
   });
 }
 
 async function editar(id) {
-  const snap = await getDocs(collection(db,"orcamentos"));
+  const snap = await getDocs(collection(db, "orcamentos"));
 
   snap.forEach(d => {
     if (d.id === id) {
@@ -259,15 +277,15 @@ async function editar(id) {
 }
 
 async function excluirOrcamento(id) {
-  await deleteDoc(doc(db,"orcamentos",id));
+  await deleteDoc(doc(db, "orcamentos", id));
   listarOrcamentos();
 }
 
 // ================= ABAS =================
 
 function mostrarAba(aba) {
-  document.querySelectorAll(".aba").forEach(a=>a.style.display="none");
-  document.getElementById(aba).style.display="block";
+  document.querySelectorAll(".aba").forEach(a => a.style.display = "none");
+  document.getElementById(aba).style.display = "block";
 
   if (aba === "calendario") carregarCalendario();
   if (aba === "orcamentos") listarOrcamentos();
