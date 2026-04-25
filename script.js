@@ -182,10 +182,10 @@ async function salvarOrcamento() {
   itens = [];
   atualizarOrcamento();
 
-  await listarOrcamentos(); // 🔥 AQUI CORRIGE O HISTÓRICO
+  listarOrcamentos();
 }
 
-// ================= LISTAR ORÇAMENTOS (FIX PRINCIPAL) =================
+// ================= LISTAR ORÇAMENTOS =================
 
 async function listarOrcamentos() {
   const lista = document.getElementById("historicoOrcamentos");
@@ -201,7 +201,9 @@ async function listarOrcamentos() {
     const li = document.createElement("li");
     li.innerHTML = `
       <strong>${data.paciente}</strong><br>
-      ${data.data} - R$ ${data.total.toFixed(2)}
+      ${data.data} - R$ ${data.total.toFixed(2)}<br>
+
+      <button onclick='gerarPDFHistorico(${JSON.stringify(data)})'>PDF</button>
       <button onclick="editar('${d.id}')">Editar</button>
       <button onclick="excluirOrcamento('${d.id}')">Excluir</button>
     `;
@@ -210,13 +212,11 @@ async function listarOrcamentos() {
   });
 }
 
-// ================= PDF =================
+// ================= PDF ORÇAMENTO NOVO =================
 
 function gerarPDFOrcamento() {
   const paciente = document.getElementById("pacienteOrcamento").value;
   const total = document.getElementById("totalOrcamento").innerText;
-
-  if (!paciente) return alert("Selecione o paciente");
 
   let itensHTML = "";
 
@@ -233,7 +233,7 @@ function gerarPDFOrcamento() {
         <style>
           body { font-family: Arial; padding: 30px; }
           h1 { text-align: center; }
-          p { margin: 5px 0; }
+          p { margin: 6px 0; }
           .total { margin-top: 20px; font-size: 20px; font-weight: bold; }
         </style>
       </head>
@@ -243,6 +243,51 @@ function gerarPDFOrcamento() {
         <hr>
         ${itensHTML}
         <div class="total">Total: R$ ${total}</div>
+      </body>
+    </html>
+  `);
+
+  janela.document.close();
+
+  setTimeout(() => {
+    janela.print();
+    janela.close();
+  }, 500);
+}
+
+// ================= PDF HISTÓRICO =================
+
+function gerarPDFHistorico(data) {
+  let itensHTML = "";
+
+  data.itens.forEach(i => {
+    itensHTML += `<p>Dente ${i.dente} - ${i.proc} - R$ ${i.valor.toFixed(2)}</p>`;
+  });
+
+  const janela = window.open("", "_blank");
+
+  janela.document.write(`
+    <html>
+      <head>
+        <title>Orçamento - ${data.paciente}</title>
+        <style>
+          body { font-family: Arial; padding: 30px; }
+          h1 { text-align: center; }
+          p { margin: 6px 0; }
+          .total { margin-top: 20px; font-size: 20px; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <h1>Orçamento Odontológico</h1>
+
+        <p><strong>Paciente:</strong> ${data.paciente}</p>
+        <p><strong>Data:</strong> ${data.data}</p>
+
+        <hr>
+
+        ${itensHTML}
+
+        <div class="total">Total: R$ ${data.total.toFixed(2)}</div>
       </body>
     </html>
   `);
@@ -274,6 +319,7 @@ window.onload = () => {
   window.removerItem = removerItem;
   window.salvarOrcamento = salvarOrcamento;
   window.gerarPDFOrcamento = gerarPDFOrcamento;
+  window.gerarPDFHistorico = gerarPDFHistorico;
   window.mostrarAba = mostrarAba;
   window.listarOrcamentos = listarOrcamentos;
 
