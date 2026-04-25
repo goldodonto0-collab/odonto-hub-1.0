@@ -33,7 +33,18 @@ let pacientesMap = {};
 let itens = [];
 let editandoId = null;
 
-// ================= ABA =================
+// ================= DENTES =================
+
+const dentes = [
+  18,17,16,15,14,13,12,11,
+  21,22,23,24,25,26,27,28,29,
+  19,
+  48,47,46,45,44,43,42,41,
+  31,32,33,34,35,36,37,38,39,
+  49
+];
+
+// ================= ABA (NÃO MEXIDA) =================
 
 window.mostrarAba = function (aba) {
   document.querySelectorAll(".aba").forEach(a => a.style.display = "none");
@@ -77,9 +88,37 @@ async function listarPacientes() {
   snap.forEach(d => {
     const data = d.data();
 
+    pacientesMap[data.nome] = d.id;
+
     lista.innerHTML += `<li>${data.nome}</li>`;
     selectAtend.innerHTML += `<option>${data.nome}</option>`;
     selectOrc.innerHTML += `<option>${data.nome}</option>`;
+  });
+}
+
+// ================= ODONTOGRAMA (ORIGINAL) =================
+
+function criarOdontograma() {
+  const el = document.getElementById("odontograma");
+  if (!el) return;
+
+  el.innerHTML = "";
+
+  dentes.forEach(d => {
+    const div = document.createElement("div");
+    div.className = "dente";
+
+    if ([19,29,39,49].includes(d)) {
+      div.classList.add("extra");
+    }
+
+    div.innerText = d;
+
+    div.onclick = () => {
+      document.getElementById("denteSelecionado").value = d;
+    };
+
+    el.appendChild(div);
   });
 }
 
@@ -166,7 +205,7 @@ async function listarOrcamentos() {
   });
 }
 
-// ================= PDF PROFISSIONAL COM LOGO =================
+// ================= PDF COM LOGO (SÓ ISSO FOI MELHORADO) =================
 
 window.gerarPDF = function (data) {
 
@@ -187,88 +226,42 @@ window.gerarPDF = function (data) {
   janela.document.write(`
     <html>
     <head>
-      <title>Orçamento Odontológico</title>
-
+      <title>Orçamento</title>
       <style>
-        @page {
-          size: A4;
-          margin: 20mm;
-        }
-
-        body {
-          font-family: Arial;
-          margin: 0;
-          padding: 0;
-          color: #333;
-        }
+        body { font-family: Arial; padding: 20px; }
+        table { width:100%; border-collapse: collapse; }
+        th { background:#0b5ed7; color:white; padding:8px; }
+        td { padding:8px; border-bottom:1px solid #ddd; }
 
         .header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          border-bottom: 2px solid #0b5ed7;
-          padding-bottom: 10px;
-          margin-bottom: 20px;
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          border-bottom:2px solid #0b5ed7;
+          margin-bottom:15px;
+          padding-bottom:10px;
         }
 
-        .logo img {
-          width: 160px;
-        }
+        .logo img { width:140px; }
 
-        .info {
-          text-align: right;
-        }
-
-        .info h2 {
-          margin: 0;
-          color: #0b5ed7;
-        }
-
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-top: 15px;
-        }
-
-        th {
-          background: #0b5ed7;
-          color: white;
-          padding: 10px;
-        }
-
-        td {
-          padding: 8px;
-          border-bottom: 1px solid #ddd;
-        }
-
-        .total {
-          text-align: right;
-          font-size: 18px;
-          margin-top: 20px;
-          color: #0b5ed7;
-          font-weight: bold;
-        }
-
+        .info { text-align:right; }
       </style>
     </head>
 
     <body>
 
       <div class="header">
-
         <div class="logo">
           <img src="${LOGO_URL}">
         </div>
 
         <div class="info">
-          <h2>Clínica Odontológica</h2>
-          <p>Orçamento Profissional</p>
+          <h3>Clínica Odontológica</h3>
         </div>
-
       </div>
 
-      <p><strong>Paciente:</strong> ${data.paciente}</p>
-      <p><strong>Data:</strong> ${data.data}</p>
+      <p><b>Paciente:</b> ${data.paciente}</p>
+      <p><b>Data:</b> ${data.data}</p>
 
       <table>
         <tr>
@@ -279,9 +272,7 @@ window.gerarPDF = function (data) {
         ${itensHTML}
       </table>
 
-      <div class="total">
-        Total: R$ ${data.total.toFixed(2)}
-      </div>
+      <h3>Total: R$ ${data.total.toFixed(2)}</h3>
 
       <script>
         window.onload = () => window.print();
@@ -304,6 +295,7 @@ window.onload = () => {
   window.gerarPDF = gerarPDF;
   window.mostrarAba = mostrarAba;
 
+  criarOdontograma();
   listarPacientes();
   listarOrcamentos();
 };
