@@ -76,7 +76,7 @@ async function salvarPaciente() {
   listarPacientes();
 }
 
-// ================= LISTAR PACIENTES =================
+// ================= LISTAR =================
 
 async function listarPacientes() {
   const lista = document.getElementById("listaPacientes");
@@ -98,15 +98,8 @@ async function listarPacientes() {
     li.innerHTML = `<strong>${data.nome}</strong>`;
     lista.appendChild(li);
 
-    const opt1 = document.createElement("option");
-    opt1.value = data.nome;
-    opt1.textContent = data.nome;
-    selectAtend.appendChild(opt1);
-
-    const opt2 = document.createElement("option");
-    opt2.value = data.nome;
-    opt2.textContent = data.nome;
-    selectOrc.appendChild(opt2);
+    selectAtend.innerHTML += `<option>${data.nome}</option>`;
+    selectOrc.innerHTML += `<option>${data.nome}</option>`;
   });
 }
 
@@ -158,12 +151,12 @@ function atualizarOrcamento() {
   itens.forEach((i, index) => {
     total += i.valor;
 
-    const li = document.createElement("li");
-    li.innerHTML = `
-      Dente ${i.dente} - ${i.proc} - R$ ${i.valor.toFixed(2)}
-      <button onclick="removerItem(${index})">X</button>
+    lista.innerHTML += `
+      <li>
+        Dente ${i.dente} - ${i.proc} - R$ ${i.valor.toFixed(2)}
+        <button onclick="removerItem(${index})">X</button>
+      </li>
     `;
-    lista.appendChild(li);
   });
 
   document.getElementById("totalOrcamento").innerText = total.toFixed(2);
@@ -174,7 +167,7 @@ function removerItem(i) {
   atualizarOrcamento();
 }
 
-// ================= SALVAR ORÇAMENTO =================
+// ================= SALVAR =================
 
 async function salvarOrcamento() {
   const paciente = document.getElementById("pacienteOrcamento").value;
@@ -198,7 +191,6 @@ async function salvarOrcamento() {
 
   itens = [];
   atualizarOrcamento();
-
   listarOrcamentos();
 }
 
@@ -215,23 +207,22 @@ async function listarOrcamentos() {
   snap.forEach(d => {
     const data = d.data();
 
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <strong>${data.paciente}</strong><br>
-      ${data.data} - R$ ${data.total.toFixed(2)}<br>
+    lista.innerHTML += `
+      <li>
+        <strong>${data.paciente}</strong><br>
+        ${data.data} - R$ ${data.total.toFixed(2)}<br>
 
-      <button onclick='gerarPDF(${JSON.stringify(data)})'>PDF</button>
-      <button onclick="excluirOrcamento('${d.id}')">Excluir</button>
+        <button onclick='gerarPDF(${JSON.stringify(data)})'>PDF</button>
+      </li>
     `;
-
-    lista.appendChild(li);
   });
 }
 
-// ================= PDF PROFISSIONAL FIXADO =================
+// ================= PDF 100% CORRIGIDO =================
 
 function gerarPDF(data) {
-  const janela = window.open("", "_blank");
+
+  const el = document.createElement("div");
 
   let itensHTML = "";
 
@@ -245,132 +236,47 @@ function gerarPDF(data) {
     `;
   });
 
-  janela.document.write(`
-    <html>
-    <head>
-      <title>Orçamento Odontológico</title>
+  el.innerHTML = `
+    <div style="width:210mm; padding:15mm; font-family:Arial; background:white;">
 
-      <style>
-        @page {
-          size: A4;
-          margin: 15mm;
-        }
-
-        body {
-          font-family: Arial;
-          margin: 0;
-          width: 210mm;
-        }
-
-        .page {
-          padding: 15mm;
-        }
-
-        .header {
-          display: flex;
-          justify-content: space-between;
-          border-bottom: 2px solid #0b5ed7;
-          padding-bottom: 10px;
-          margin-bottom: 20px;
-        }
-
-        .logo img {
-          width: 180px;
-        }
-
-        .clinic-info {
-          text-align: right;
-        }
-
-        .title {
-          text-align: center;
-          font-size: 20px;
-          font-weight: bold;
-          margin: 15px 0;
-        }
-
-        table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-
-        th {
-          background: #0b5ed7;
-          color: white;
-          padding: 8px;
-        }
-
-        td {
-          padding: 8px;
-          border-bottom: 1px solid #ddd;
-        }
-
-        .total {
-          text-align: right;
-          font-size: 18px;
-          font-weight: bold;
-          margin-top: 20px;
-          color: #0b5ed7;
-        }
-
-        .footer {
-          position: fixed;
-          bottom: 10mm;
-          text-align: center;
-          width: 100%;
-          font-size: 11px;
-        }
-      </style>
-    </head>
-
-    <body>
-
-      <div class="page">
-
-        <div class="header">
-          <div class="logo">
-            <img src="${LOGO_URL}">
-          </div>
-
-          <div class="clinic-info">
-            <h2>Clínica Odontológica</h2>
-            <p>Atendimento especializado</p>
-          </div>
+      <div style="display:flex;justify-content:space-between;border-bottom:2px solid #0b5ed7;padding-bottom:10px;">
+        <img src="${LOGO_URL}" style="width:180px;">
+        <div style="text-align:right;">
+          <h2 style="margin:0;color:#0b5ed7;">Clínica Odontológica</h2>
         </div>
-
-        <div class="title">ORÇAMENTO ODONTOLÓGICO</div>
-
-        <p><strong>Paciente:</strong> ${data.paciente}</p>
-        <p><strong>Data:</strong> ${data.data}</p>
-
-        <table>
-          <tr>
-            <th>Dente</th>
-            <th>Procedimento</th>
-            <th>Valor</th>
-          </tr>
-          ${itensHTML}
-        </table>
-
-        <div class="total">
-          Total: R$ ${data.total.toFixed(2)}
-        </div>
-
-        <div class="footer">
-          Sistema odontológico automático
-        </div>
-
       </div>
 
-      <script>
-        window.onload = () => window.print();
-      </script>
+      <h2 style="text-align:center;">ORÇAMENTO ODONTOLÓGICO</h2>
 
-    </body>
-    </html>
-  `);
+      <p><b>Paciente:</b> ${data.paciente}</p>
+      <p><b>Data:</b> ${data.data}</p>
 
-  janela.document.close();
+      <table style="width:100%;border-collapse:collapse;margin-top:15px;">
+        <tr style="background:#0b5ed7;color:white;">
+          <th>Dente</th>
+          <th>Procedimento</th>
+          <th>Valor</th>
+        </tr>
+        ${itensHTML}
+      </table>
+
+      <h3 style="text-align:right;color:#0b5ed7;">
+        Total: R$ ${data.total.toFixed(2)}
+      </h3>
+
+    </div>
+  `;
+
+  html2pdf()
+    .set({
+      margin: 0,
+      filename: `orcamento-${data.paciente}.pdf`,
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    })
+    .from(el)
+    .save();
 }
 
 // ================= INIT =================
