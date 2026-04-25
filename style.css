@@ -28,3 +28,35 @@
   display: flex;
   justify-content: space-between;
 }
+.odontograma {
+  display: grid;
+  grid-template-columns: repeat(8, 50px);
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.dente {
+  width: 50px;
+  height: 50px;
+  background: #f1f5f9;
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.dente:hover {
+  background: #4a5568;
+  color: white;
+}
+
+#listaItensOrcamento li {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+}
