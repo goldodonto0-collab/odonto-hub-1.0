@@ -28,17 +28,6 @@ const LOGO_URL = "https://i.imgur.com/2Bvio9f.jpeg";
 
 let itens = [];
 
-// ================= DENTES =================
-
-const dentes = [
-  18,17,16,15,14,13,12,11,
-  21,22,23,24,25,26,27,28,29,
-  19,
-  48,47,46,45,44,43,42,41,
-  31,32,33,34,35,36,37,38,39,
-  49
-];
-
 // ================= ABA =================
 
 window.mostrarAba = function (aba) {
@@ -50,14 +39,7 @@ window.mostrarAba = function (aba) {
 
 window.salvarPaciente = async function () {
   const paciente = {
-    nome: document.getElementById("nomePaciente").value,
-    telefone: document.getElementById("telefonePaciente").value,
-    cpf: document.getElementById("cpfPaciente").value,
-    rg: document.getElementById("rgPaciente").value,
-    nascimento: document.getElementById("nascimentoPaciente").value,
-    endereco: document.getElementById("enderecoPaciente").value,
-    saude: document.getElementById("saudePaciente").value,
-    observacoes: document.getElementById("observacoesPaciente").value
+    nome: document.getElementById("nomePaciente").value
   };
 
   if (!paciente.nome) return alert("Digite o nome");
@@ -71,12 +53,10 @@ window.salvarPaciente = async function () {
 
 async function listarPacientes() {
   const lista = document.getElementById("listaPacientes");
-  const selectAtend = document.getElementById("nome");
-  const selectOrc = document.getElementById("pacienteOrcamento");
+  const select = document.getElementById("pacienteOrcamento");
 
   lista.innerHTML = "";
-  selectAtend.innerHTML = `<option value="">Selecione o paciente</option>`;
-  selectOrc.innerHTML = `<option value="">Selecione o paciente</option>`;
+  select.innerHTML = "";
 
   const snap = await getDocs(collection(db, "pacientes"));
 
@@ -84,34 +64,7 @@ async function listarPacientes() {
     const data = d.data();
 
     lista.innerHTML += `<li>${data.nome}</li>`;
-    selectAtend.innerHTML += `<option>${data.nome}</option>`;
-    selectOrc.innerHTML += `<option>${data.nome}</option>`;
-  });
-}
-
-// ================= ODONTOGRAMA =================
-
-function criarOdontograma() {
-  const el = document.getElementById("odontograma");
-  if (!el) return;
-
-  el.innerHTML = "";
-
-  dentes.forEach(d => {
-    const div = document.createElement("div");
-    div.className = "dente";
-
-    if ([19,29,39,49].includes(d)) {
-      div.classList.add("extra");
-    }
-
-    div.innerText = d;
-
-    div.onclick = () => {
-      document.getElementById("denteSelecionado").value = d;
-    };
-
-    el.appendChild(div);
+    select.innerHTML += `<option>${data.nome}</option>`;
   });
 }
 
@@ -153,13 +106,11 @@ window.removerItem = function (i) {
   atualizarOrcamento();
 };
 
-// ================= SALVAR ORÇAMENTO =================
+// ================= SALVAR =================
 
 window.salvarOrcamento = async function () {
   const paciente = document.getElementById("pacienteOrcamento").value;
   const total = itens.reduce((a,b)=>a+b.valor,0);
-
-  if (!paciente) return alert("Selecione paciente");
 
   await addDoc(collection(db,"orcamentos"),{
     paciente,
@@ -177,8 +128,6 @@ window.salvarOrcamento = async function () {
 
 async function listarOrcamentos() {
   const lista = document.getElementById("historicoOrcamentos");
-  if (!lista) return;
-
   lista.innerHTML = "";
 
   const snap = await getDocs(collection(db, "orcamentos"));
@@ -196,7 +145,7 @@ async function listarOrcamentos() {
   });
 }
 
-// ================= PDF PROFISSIONAL FINAL =================
+// ================= PDF PROFISSIONAL (SEM BRANCO) =================
 
 window.gerarPDF = function (data) {
 
@@ -212,35 +161,38 @@ window.gerarPDF = function (data) {
     `;
   });
 
-  const conteudo = `
-  <div style="font-family: Arial; width: 210mm; padding: 20px;">
+  const el = document.createElement("div");
 
-    <div style="display:flex; justify-content:space-between; border-bottom:2px solid #0b5ed7; padding-bottom:10px;">
-      <img src="${LOGO_URL}" style="width:140px;">
-      <div style="text-align:right;">
-        <h2 style="margin:0; color:#0b5ed7;">Clínica Odontológica</h2>
-        <p style="margin:0;">Orçamento Profissional</p>
+  el.innerHTML = `
+    <div style="font-family:Arial; width:210mm; padding:20px;">
+
+      <div style="display:flex; justify-content:space-between; border-bottom:2px solid #0b5ed7; padding-bottom:10px;">
+        <img src="${LOGO_URL}" style="width:140px;">
+        <div style="text-align:right;">
+          <h2 style="margin:0; color:#0b5ed7;">Clínica Odontológica</h2>
+        </div>
       </div>
+
+      <p><b>Paciente:</b> ${data.paciente}</p>
+      <p><b>Data:</b> ${data.data}</p>
+
+      <table style="width:100%; border-collapse:collapse;">
+        <tr style="background:#0b5ed7; color:white;">
+          <th>Dente</th>
+          <th>Procedimento</th>
+          <th>Valor</th>
+        </tr>
+        ${itensHTML}
+      </table>
+
+      <h3 style="text-align:right; color:#0b5ed7;">
+        Total: R$ ${data.total.toFixed(2)}
+      </h3>
+
     </div>
-
-    <p><strong>Paciente:</strong> ${data.paciente}</p>
-    <p><strong>Data:</strong> ${data.data}</p>
-
-    <table style="width:100%; border-collapse:collapse; margin-top:10px;">
-      <tr style="background:#0b5ed7; color:white;">
-        <th>Dente</th>
-        <th>Procedimento</th>
-        <th>Valor</th>
-      </tr>
-      ${itensHTML}
-    </table>
-
-    <h3 style="text-align:right; color:#0b5ed7;">
-      Total: R$ ${data.total.toFixed(2)}
-    </h3>
-
-  </div>
   `;
+
+  document.body.appendChild(el);
 
   html2pdf().set({
     margin: 0,
@@ -248,20 +200,14 @@ window.gerarPDF = function (data) {
     image: { type: 'jpeg', quality: 1 },
     html2canvas: { scale: 3, useCORS: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  }).from(conteudo).save();
+  }).from(el).save().then(() => {
+    document.body.removeChild(el);
+  });
 };
 
 // ================= INIT =================
 
 window.onload = () => {
-  window.salvarPaciente = salvarPaciente;
-  window.adicionarItemOrcamento = adicionarItemOrcamento;
-  window.removerItem = removerItem;
-  window.salvarOrcamento = salvarOrcamento;
-  window.gerarPDF = gerarPDF;
-  window.mostrarAba = mostrarAba;
-
-  criarOdontograma();
   listarPacientes();
   listarOrcamentos();
 };
