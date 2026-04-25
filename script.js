@@ -180,10 +180,11 @@ window.salvarOrcamento = async function () {
 
   itens = [];
   atualizarOrcamento();
-  listarOrcamentos();
+
+  listarOrcamentos(); // 🔥 ATUALIZA HISTÓRICO
 };
 
-// ================= LISTAR ORÇAMENTOS =================
+// ================= HISTÓRICO DE ORÇAMENTOS =================
 
 async function listarOrcamentos() {
   const lista = document.getElementById("historicoOrcamentos");
@@ -196,17 +197,20 @@ async function listarOrcamentos() {
   snap.forEach(d => {
     const data = d.data();
 
-    lista.innerHTML += `
-      <li>
-        <strong>${data.paciente}</strong><br>
-        ${data.data} - R$ ${data.total.toFixed(2)}<br>
-        <button onclick='gerarPDF(${JSON.stringify(data)})'>PDF</button>
-      </li>
+    const li = document.createElement("li");
+
+    li.innerHTML = `
+      <strong>${data.paciente}</strong><br>
+      ${data.data} - R$ ${data.total.toFixed(2)}<br>
+
+      <button onclick='gerarPDF(${JSON.stringify(data)})'>PDF</button>
     `;
+
+    lista.appendChild(li);
   });
 }
 
-// ================= PDF SIMPLES ORIGINAL =================
+// ================= PDF SIMPLES (ESTÁVEL) =================
 
 window.gerarPDF = function (data) {
   const janela = window.open("", "_blank");
@@ -234,6 +238,7 @@ window.gerarPDF = function (data) {
         td { padding:8px; border-bottom:1px solid #ddd; }
       </style>
     </head>
+
     <body>
 
       <h2>Orçamento Odontológico</h2>
@@ -275,4 +280,5 @@ window.onload = () => {
 
   criarOdontograma();
   listarPacientes();
+  listarOrcamentos(); // 🔥 IMPORTANTE
 };
