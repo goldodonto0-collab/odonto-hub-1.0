@@ -92,7 +92,7 @@ async function listarPacientes() {
   });
 }
 
-// ================= PACIENTE EDIT/DEL =================
+// ================= EDITAR / EXCLUIR PACIENTE =================
 
 window.editarPaciente = (id,nome) => {
   document.getElementById("nomePaciente").value = nome;
@@ -164,7 +164,7 @@ async function listarAtendimentos() {
   });
 }
 
-// ================= AGENDAMENTO =================
+// ================= CALENDÁRIO =================
 
 window.salvarAgendamento = async () => {
 
@@ -179,7 +179,7 @@ window.salvarAgendamento = async () => {
   listarAgendamentos();
 };
 
-// ================= LISTAR AGENDAMENTOS =================
+// ================= LISTAR CALENDÁRIO =================
 
 async function listarAgendamentos() {
 
