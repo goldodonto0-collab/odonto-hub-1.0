@@ -146,32 +146,92 @@ async function listarOrcamentos() {
 // PDF (MANTIDO SIMPLES E FUNCIONAL)
 window.gerarPDF = function (data) {
 
+  const wrapper = document.createElement("div");
+
   let itensHTML = "";
 
   data.itens.forEach(i => {
-    itensHTML += `<tr><td>${i.dente}</td><td>${i.proc}</td><td>R$ ${i.valor}</td></tr>`;
+    itensHTML += `
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #ddd;">${i.dente}</td>
+        <td style="padding:8px; border-bottom:1px solid #ddd;">${i.proc}</td>
+        <td style="padding:8px; border-bottom:1px solid #ddd; text-align:right;">
+          R$ ${Number(i.valor).toFixed(2)}
+        </td>
+      </tr>
+    `;
   });
 
-  const el = document.createElement("div");
+  wrapper.innerHTML = `
+    <div style="
+      font-family: Arial;
+      width: 210mm;
+      padding: 20px;
+      background: white;
+      color: #2d3748;
+    ">
 
-  el.innerHTML = `
-    <div style="font-family:Arial; width:210mm; padding:20px;">
-      <img src="${LOGO_URL}" style="width:140px;">
-      <h2>${data.paciente}</h2>
-      <table>
-        ${itensHTML}
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        border-bottom:2px solid #0b5ed7;
+        padding-bottom:10px;
+        margin-bottom:20px;
+      ">
+        <img src="https://i.imgur.com/2Bvio9f.jpeg" crossorigin="anonymous" style="width:140px;">
+        <div style="text-align:right;">
+          <h2 style="margin:0; color:#0b5ed7;">Clínica Odontológica</h2>
+          <p style="margin:0;">Orçamento Profissional</p>
+        </div>
+      </div>
+
+      <p><strong>Paciente:</strong> ${data.paciente}</p>
+      <p><strong>Data:</strong> ${data.data}</p>
+
+      <table style="width:100%; border-collapse:collapse; margin-top:15px;">
+        <thead>
+          <tr style="background:#0b5ed7; color:white;">
+            <th style="padding:10px;">Dente</th>
+            <th style="padding:10px;">Procedimento</th>
+            <th style="padding:10px;">Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itensHTML}
+        </tbody>
       </table>
-      <h3>Total: R$ ${data.total}</h3>
+
+      <h3 style="text-align:right; margin-top:20px; color:#0b5ed7;">
+        Total: R$ ${data.total.toFixed(2)}
+      </h3>
+
     </div>
   `;
 
-  document.body.appendChild(el);
+  document.body.appendChild(wrapper);
 
-  html2pdf().from(el).save().then(() => {
-    document.body.removeChild(el);
-  });
+  setTimeout(() => {
+    html2pdf().set({
+      margin: 0,
+      filename: `orcamento-${data.paciente}.pdf`,
+      image: { type: "jpeg", quality: 1 },
+      html2canvas: {
+        scale: 3,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: "#ffffff"
+      },
+      jsPDF: {
+        unit: "mm",
+        format: "a4",
+        orientation: "portrait"
+      }
+    }).from(wrapper).save().then(() => {
+      document.body.removeChild(wrapper);
+    });
+  }, 300);
 };
-
 // INIT
 window.onload = () => {
   criarOdontograma();
