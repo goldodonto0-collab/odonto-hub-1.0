@@ -1,87 +1,86 @@
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #edf2f7, #dfe9f3);
   margin: 0;
-  padding: 30px;
+  font-family: "Segoe UI", sans-serif;
+  background: #f4f6fb;
   color: #2d3748;
 }
 
-.container {
-  max-width: 1100px;
-  margin: auto;
-}
-
-h1 {
-  text-align: center;
-  margin-bottom: 30px;
-  font-size: 38px;
-  color: #1a202c;
-  font-weight: 700;
-}
-
-.tabs {
+/* APP LAYOUT */
+.app {
   display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-bottom: 25px;
+  min-height: 100vh;
 }
 
-.tabs button {
-  padding: 14px 30px;
-  border: none;
-  border-radius: 14px;
-  background: #4a5568;
+/* SIDEBAR */
+.sidebar {
+  width: 240px;
+  background: #111827;
   color: white;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.3s;
+  padding: 20px;
 }
 
-.tabs button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+.sidebar h2 {
+  margin-bottom: 20px;
+  font-size: 20px;
 }
 
-.card {
-  background: rgba(255,255,255,0.95);
-  padding: 28px;
-  border-radius: 22px;
-  margin-bottom: 25px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-}
-
-h2, h3 {
-  margin-top: 0;
-  color: #2d3748;
-}
-
-input,
-textarea,
-select {
+.sidebar button {
   width: 100%;
-  padding: 14px;
-  margin: 10px 0;
-  border: 1px solid #d2d6dc;
-  border-radius: 12px;
-  font-size: 15px;
-  box-sizing: border-box;
+  padding: 12px;
+  margin: 6px 0;
+  border: none;
+  border-radius: 10px;
+  background: #1f2937;
+  color: white;
+  cursor: pointer;
+}
+
+.sidebar button:hover {
+  background: #374151;
+}
+
+/* CONTENT */
+.content {
+  flex: 1;
+  padding: 25px;
+}
+
+/* CARDS */
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+}
+
+/* INPUTS */
+input, textarea, select {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
 }
 
 button {
-  padding: 12px 20px;
-  margin-top: 10px;
+  padding: 10px 16px;
   border: none;
-  border-radius: 12px;
-  background: #4a5568;
+  background: #2563eb;
   color: white;
-  font-size: 15px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: 0.2s;
 }
 
 button:hover {
-  background: #2d3748;
+  background: #1d4ed8;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
 }
 
 /* LISTAS */
@@ -91,120 +90,54 @@ ul {
 }
 
 li {
-  background: #f8fafc;
-  padding: 18px;
-  margin-bottom: 10px;
-  border-radius: 14px;
-  border: 1px solid #e2e8f0;
-}
-
-/* ================= MODAL ================= */
-
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal-conteudo {
-  background: white;
-  padding: 30px;
-  border-radius: 20px;
-  width: 90%;
-  max-width: 700px;
-}
-
-.fechar {
-  float: right;
-  font-size: 26px;
-  cursor: pointer;
-}
-
-/* ================= ODONTOGRAMA ================= */
-
-.odontograma {
-  display: grid;
-  grid-template-columns: repeat(8, 50px);
-  gap: 10px;
-  justify-content: center;
-  margin: 20px 0;
-}
-
-.dente {
-  width: 50px;
-  height: 50px;
-  background: #edf2f7;
-  border: 2px solid #cbd5e0;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.dente:hover {
-  background: #4a5568;
-  color: white;
-}
-
-/* 🟠 SUPRANUMERÁRIOS (19, 29, 39, 49) */
-.dente.extra {
-  background: #fff3e0;
-  border: 2px solid #ff9800;
-  color: #e65100;
-}
-
-.dente.extra:hover {
-  background: #ff9800;
-  color: white;
-}
-
-/* ORÇAMENTO LISTA */
-#listaItensOrcamento li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-#listaItensOrcamento button {
-  background: #e53e3e;
-  padding: 5px 10px;
+  background: #f9fafb;
+  padding: 10px;
+  margin: 6px 0;
   border-radius: 8px;
 }
 
-#listaItensOrcamento button:hover {
-  background: #c53030;
-}
-
-#totalOrcamento {
-  font-size: 22px;
-  font-weight: bold;
-}
-/* ===== AJUSTE PARA PDF ESTÁVEL ===== */
-
-#pdfArea {
-  background: white !important;
-}
-
-/* evita cortes no canvas */
-.container {
-  overflow: visible;
-}
-
-/* melhora renderização no PDF */
-.card {
-  break-inside: avoid;
-  page-break-inside: avoid;
-}
-
-/* melhora odontograma no canvas/PDF */
+/* ODONTOGRAMA */
 .odontograma {
-  background: white;
-  padding: 10px;
-  border-radius: 10px;
+  display: grid;
+  grid-template-columns: repeat(8, 40px);
+  gap: 6px;
+  margin: 15px 0;
+}
+
+.dente {
+  width: 40px;
+  height: 40px;
+  background: #e5e7eb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.dente:hover {
+  background: #2563eb;
+  color: white;
+}
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .sidebar button {
+    flex: 1;
+    margin-right: 5px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }
