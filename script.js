@@ -206,7 +206,7 @@ async function listarOrcamentos() {
   });
 }
 
-// ================= PDF ORIGINAL (WINDOW PRINT SIMPLES) =================
+// ================= PDF SIMPLES ORIGINAL =================
 
 window.gerarPDF = function (data) {
   const janela = window.open("", "_blank");
@@ -234,7 +234,6 @@ window.gerarPDF = function (data) {
         td { padding:8px; border-bottom:1px solid #ddd; }
       </style>
     </head>
-
     <body>
 
       <h2>Orçamento Odontológico</h2>
