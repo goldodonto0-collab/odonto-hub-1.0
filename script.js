@@ -27,6 +27,7 @@ const db = getFirestore(app);
 
 let itens = [];
 let editandoPacienteId = null;
+let editandoAtendimentoId = null;
 
 // ================= DENTES =================
 
@@ -141,7 +142,7 @@ window.excluirPaciente = async (id) => {
   listarPacientes();
 };
 
-// ================= ATENDIMENTO =================
+// ================= ATENDIMENTOS =================
 
 window.salvar = async () => {
 
@@ -151,12 +152,19 @@ window.salvar = async () => {
 
   if (!paciente || !feito) return alert("Preencha paciente e procedimento");
 
-  await addDoc(collection(db, "atendimentos"), {
+  const data = {
     paciente,
     feito,
     proximo,
     data: new Date().toLocaleDateString()
-  });
+  };
+
+  if (editandoAtendimentoId) {
+    await updateDoc(doc(db, "atendimentos", editandoAtendimentoId), data);
+    editandoAtendimentoId = null;
+  } else {
+    await addDoc(collection(db, "atendimentos"), data);
+  }
 
   document.getElementById("feito").value = "";
   document.getElementById("proximo").value = "";
@@ -183,242 +191,33 @@ async function listarAtendimentos() {
         <strong>${a.paciente}</strong><br>
         ${a.feito}<br>
         Retorno: ${a.proximo || "-"}<br>
-        ${a.data}
+        ${a.data}<br>
+
+        <button onclick="editarAtendimento('${d.id}', '${a.paciente}', '${a.feito}', '${a.proximo || ""}')">Editar</button>
+        <button onclick="excluirAtendimento('${d.id}')">Excluir</button>
       </li>
     `;
   });
 }
 
-// ================= FICHA DO PACIENTE =================
+// ================= EDITAR ATENDIMENTO =================
 
-window.imprimirPaciente = async (nome, tel, cpf, end, obs) => {
+window.editarAtendimento = (id, paciente, feito, proximo) => {
 
-  const snap = await getDocs(collection(db, "atendimentos"));
+  document.getElementById("nome").value = paciente;
+  document.getElementById("feito").value = feito;
+  document.getElementById("proximo").value = proximo;
 
-  let historico = "";
-
-  snap.forEach(d => {
-    const a = d.data();
-
-    if (a.paciente === nome) {
-      historico += `
-        <tr>
-          <td>${a.data}</td>
-          <td>${a.feito}</td>
-          <td>${a.proximo || "-"}</td>
-        </tr>
-      `;
-    }
-  });
-
-  const win = window.open("", "_blank");
-
-  win.document.write(`
-    <html>
-    <head>
-      <title>Ficha do Paciente</title>
-      <style>
-        body { font-family: Arial; padding: 30px; }
-        .box { border: 1px solid #ddd; padding: 20px; border-radius: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 8px; }
-        h2 { color: #2563eb; }
-      </style>
-    </head>
-    <body>
-
-      <div class="box">
-
-        <h2>Ficha do Paciente</h2>
-
-        <p><strong>Nome:</strong> ${nome}</p>
-        <p><strong>Telefone:</strong> ${tel}</p>
-        <p><strong>CPF:</strong> ${cpf}</p>
-        <p><strong>Endereço:</strong> ${end}</p>
-        <p><strong>Observações:</strong> ${obs}</p>
-
-        <h3>Histórico de Atendimentos</h3>
-
-        <table>
-          <tr>
-            <th>Data</th>
-            <th>Procedimento</th>
-            <th>Retorno</th>
-          </tr>
-          ${historico || "<tr><td colspan='3'>Sem atendimentos</td></tr>"}
-        </table>
-
-      </div>
-
-      <script>window.print()</script>
-
-    </body>
-    </html>
-  `);
-
-  win.document.close();
+  editandoAtendimentoId = id;
 };
 
-// ================= ODONTOGRAMA =================
+// ================= EXCLUIR ATENDIMENTO =================
 
-function criarOdontograma() {
+window.excluirAtendimento = async (id) => {
+  if (!confirm("Deseja excluir este atendimento?")) return;
 
-  const el = document.getElementById("odontograma");
-  if (!el) return;
-
-  el.innerHTML = "";
-
-  dentes.forEach(d => {
-    const div = document.createElement("div");
-    div.className = "dente";
-    div.innerText = d;
-
-    div.onclick = () => {
-      document.getElementById("denteSelecionado").value = d;
-    };
-
-    el.appendChild(div);
-  });
-}
-
-// ================= ORÇAMENTO =================
-
-window.adicionarItemOrcamento = () => {
-
-  const dente = document.getElementById("denteSelecionado").value;
-  const proc = document.getElementById("procedimentoOrcamento").value;
-  const valor = Number(document.getElementById("valorOrcamento").value);
-
-  if (!dente || !proc || !valor) return alert("Preencha tudo");
-
-  itens.push({ dente, proc, valor });
-  atualizarOrcamento();
-};
-
-function atualizarOrcamento() {
-
-  const lista = document.getElementById("listaItensOrcamento");
-  lista.innerHTML = "";
-
-  let total = 0;
-
-  itens.forEach((i, index) => {
-    total += i.valor;
-
-    lista.innerHTML += `
-      <li>
-        ${i.dente} - ${i.proc} - R$ ${i.valor.toFixed(2)}
-        <button onclick="remover(${index})">X</button>
-      </li>
-    `;
-  });
-
-  document.getElementById("totalOrcamento").innerText = total.toFixed(2);
-}
-
-window.remover = (i) => {
-  itens.splice(i, 1);
-  atualizarOrcamento();
-};
-
-// ================= SALVAR ORÇAMENTO =================
-
-window.salvarOrcamento = async () => {
-
-  const paciente = document.getElementById("pacienteOrcamento").value;
-
-  const total = itens.reduce((a,b)=>a+b.valor,0);
-
-  await addDoc(collection(db,"orcamentos"), {
-    paciente,
-    itens,
-    total,
-    data: new Date().toLocaleDateString()
-  });
-
-  itens = [];
-  atualizarOrcamento();
-  listarOrcamentos();
-};
-
-// ================= HISTÓRICO =================
-
-async function listarOrcamentos() {
-
-  const lista = document.getElementById("historicoOrcamentos");
-  if (!lista) return;
-
-  lista.innerHTML = "";
-
-  const snap = await getDocs(collection(db,"orcamentos"));
-
-  snap.forEach(d => {
-    const data = d.data();
-
-    lista.innerHTML += `
-      <li>
-        ${data.paciente} - R$ ${data.total.toFixed(2)}
-        <button onclick='gerarPDF(${JSON.stringify(data)})'>PDF</button>
-      </li>
-    `;
-  });
-}
-
-// ================= PDF =================
-
-window.gerarPDF = function (data) {
-
-  const wrapper = document.createElement("div");
-
-  let itensHTML = "";
-
-  data.itens.forEach(i => {
-    itensHTML += `
-      <tr>
-        <td>${i.dente}</td>
-        <td>${i.proc}</td>
-        <td>R$ ${i.valor.toFixed(2)}</td>
-      </tr>
-    `;
-  });
-
-  wrapper.innerHTML = `
-    <div style="width:800px;padding:30px;font-family:Arial;background:white;">
-
-      <h2>Orçamento Odontológico</h2>
-
-      <p><strong>Paciente:</strong> ${data.paciente}</p>
-      <p><strong>Data:</strong> ${data.data}</p>
-
-      <table border="1" width="100%">
-        <tr>
-          <th>Dente</th>
-          <th>Procedimento</th>
-          <th>Valor</th>
-        </tr>
-        ${itensHTML}
-      </table>
-
-      <h3>Total: R$ ${data.total.toFixed(2)}</h3>
-
-    </div>
-  `;
-
-  document.body.appendChild(wrapper);
-
-  html2canvas(wrapper).then(canvas => {
-
-    const img = canvas.toDataURL("image/png");
-    const pdf = new jspdf.jsPDF("p","mm","a4");
-
-    const w = 210;
-    const h = (canvas.height * w) / canvas.width;
-
-    pdf.addImage(img,"PNG",0,0,w,h);
-    pdf.save("orcamento.pdf");
-
-    document.body.removeChild(wrapper);
-  });
+  await deleteDoc(doc(db, "atendimentos", id));
+  listarAtendimentos();
 };
 
 // ================= INIT =================
