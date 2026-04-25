@@ -6,119 +6,85 @@
   <title>Odonto Hub</title>
 
   <link rel="stylesheet" href="style.css">
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 
 <body>
 
-<div class="app">
+<div class="container">
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <h2>Odonto Hub</h2>
+  <h1>Odonto Hub</h1>
 
-    <button onclick="mostrarAba('pacientes')">👤 Pacientes</button>
-    <button onclick="mostrarAba('atendimentos')">🦷 Atendimentos</button>
-    <button onclick="mostrarAba('calendario')">📅 Calendário</button>
-    <button onclick="mostrarAba('orcamentos')">📄 Orçamentos</button>
-  </aside>
+  <div class="tabs">
+    <button onclick="mostrarAba('pacientes')">Pacientes</button>
+    <button onclick="mostrarAba('atendimentos')">Atendimentos</button>
+    <button onclick="mostrarAba('calendario')">Calendário</button>
+  </div>
 
-  <!-- CONTEÚDO -->
-  <main class="content">
+  <!-- PACIENTES -->
+  <section id="pacientes" class="aba">
 
-    <!-- PACIENTES -->
-    <section id="pacientes" class="aba">
+    <div class="card">
+      <h2>Cadastro de Pacientes</h2>
 
-      <div class="card">
-        <h2>Cadastro de Pacientes</h2>
+      <input id="nomePaciente" placeholder="Nome">
+      <input id="telefonePaciente" placeholder="Telefone">
+      <input id="cpfPaciente" placeholder="CPF">
+      <input id="rgPaciente" placeholder="RG">
+      <input id="nascimentoPaciente" type="date">
+      <input id="enderecoPaciente" placeholder="Endereço">
+      <textarea id="observacoesPaciente" placeholder="Observações"></textarea>
 
-        <div class="grid">
-          <input id="nomePaciente" placeholder="Nome">
-          <input id="telefonePaciente" placeholder="Telefone">
-          <input id="cpfPaciente" placeholder="CPF">
-          <input id="rgPaciente" placeholder="RG">
-          <input id="nascimentoPaciente" type="date">
-          <input id="enderecoPaciente" placeholder="Endereço">
-        </div>
+      <button onclick="salvarPaciente()">Salvar</button>
+    </div>
 
-        <textarea id="observacoesPaciente" placeholder="Observações"></textarea>
+    <div class="card">
+      <h3>Pacientes</h3>
+      <ul id="listaPacientes"></ul>
+    </div>
 
-        <button onclick="salvarPaciente()">Salvar Paciente</button>
-      </div>
+  </section>
 
-      <div class="card">
-        <h3>Pacientes</h3>
-        <ul id="listaPacientes"></ul>
-      </div>
+  <!-- ATENDIMENTOS -->
+  <section id="atendimentos" class="aba" style="display:none;">
 
-    </section>
+    <div class="card">
+      <h2>Novo Atendimento</h2>
 
-    <!-- ATENDIMENTOS -->
-    <section id="atendimentos" class="aba" style="display:none;">
+      <select id="nome"></select>
 
-      <div class="card">
-        <h2>Novo Atendimento</h2>
+      <input id="feito" placeholder="Procedimento">
+      <input id="proximo" placeholder="Retorno">
 
-        <select id="nome"></select>
-        <input id="feito" placeholder="Procedimento">
-        <input id="proximo" placeholder="Retorno">
+      <button onclick="salvarAtendimento()">Salvar</button>
+    </div>
 
-        <button onclick="salvar()">Salvar</button>
-      </div>
+    <div class="card">
+      <h3>Histórico</h3>
+      <ul id="listaAtendimentos"></ul>
+    </div>
 
-      <div class="card">
-        <h3>Histórico</h3>
-        <ul id="lista"></ul>
-      </div>
+  </section>
 
-    </section>
+  <!-- CALENDÁRIO -->
+  <section id="calendario" class="aba" style="display:none;">
 
-    <!-- CALENDÁRIO -->
-    <section id="calendario" class="aba" style="display:none;">
-      <div class="card">
-        <h2>Calendário</h2>
-        <ul id="listaCalendario"></ul>
-      </div>
-    </section>
+    <div class="card">
+      <h2>Novo Agendamento</h2>
 
-    <!-- ORÇAMENTOS -->
-    <section id="orcamentos" class="aba" style="display:none;">
+      <select id="nomeAgenda"></select>
 
-      <div class="card">
+      <input type="date" id="dataAgendamento">
+      <input id="descricaoAgendamento" placeholder="Descrição">
 
-        <h2>Orçamentos</h2>
+      <button onclick="salvarAgendamento()">Salvar</button>
+    </div>
 
-        <select id="pacienteOrcamento"></select>
+    <div class="card">
+      <h3>Agenda</h3>
+      <ul id="listaCalendario"></ul>
+    </div>
 
-        <div id="odontograma" class="odontograma"></div>
-
-        <div class="grid">
-          <input id="denteSelecionado" placeholder="Dente" readonly>
-          <input id="procedimentoOrcamento" placeholder="Procedimento">
-          <input id="valorOrcamento" type="number" placeholder="Valor">
-        </div>
-
-        <button onclick="adicionarItemOrcamento()">Adicionar</button>
-
-        <ul id="listaItensOrcamento"></ul>
-
-        <h3>Total: R$ <span id="totalOrcamento">0.00</span></h3>
-
-        <button onclick="salvarOrcamento()">Salvar Orçamento</button>
-        <button onclick="gerarPDF()">Gerar PDF</button>
-
-      </div>
-
-      <div class="card">
-        <h3>Histórico</h3>
-        <ul id="historicoOrcamentos"></ul>
-      </div>
-
-    </section>
-
-  </main>
+  </section>
 
 </div>
 
