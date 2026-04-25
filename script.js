@@ -40,15 +40,24 @@ async function salvarPaciente() {
   if (!paciente.nome.trim()) return alert("Digite o nome");
 
   await addDoc(collection(db, "pacientes"), paciente);
+  limparPacientes();
   listarPacientes();
 }
 
+function limparPacientes() {
+  document.querySelectorAll("#pacientes input, #pacientes textarea").forEach(i => i.value = "");
+}
+
+// ================= LISTAR PACIENTES =================
+
 async function listarPacientes() {
   const lista = document.getElementById("listaPacientes");
-  const select = document.getElementById("nome");
+  const selectAtend = document.getElementById("nome");
+  const selectOrc = document.getElementById("pacienteOrcamento");
 
   lista.innerHTML = "";
-  select.innerHTML = `<option value="">Selecione o paciente</option>`;
+  selectAtend.innerHTML = `<option value="">Selecione o paciente</option>`;
+  selectOrc.innerHTML = `<option value="">Selecione o paciente</option>`;
 
   const snap = await getDocs(collection(db, "pacientes"));
 
@@ -61,10 +70,15 @@ async function listarPacientes() {
     li.innerHTML = `<strong>${data.nome}</strong>`;
     lista.appendChild(li);
 
-    const opt = document.createElement("option");
-    opt.value = data.nome;
-    opt.textContent = data.nome;
-    select.appendChild(opt);
+    const opt1 = document.createElement("option");
+    opt1.value = data.nome;
+    opt1.textContent = data.nome;
+    selectAtend.appendChild(opt1);
+
+    const opt2 = document.createElement("option");
+    opt2.value = data.nome;
+    opt2.textContent = data.nome;
+    selectOrc.appendChild(opt2);
   });
 }
 
@@ -99,10 +113,7 @@ async function listar() {
     const data = d.data();
 
     const li = document.createElement("li");
-    li.innerHTML = `
-      ${data.nome} - ${data.feito} - ${data.proximo}
-    `;
-
+    li.innerHTML = `${data.nome} - ${data.feito} - ${data.proximo}`;
     lista.appendChild(li);
   });
 }
@@ -132,10 +143,8 @@ let itens = [];
 let editandoId = null;
 
 const dentes = [
-  18,17,16,15,14,13,12,11,
-  21,22,23,24,25,26,27,28,
-  48,47,46,45,44,43,42,41,
-  31,32,33,34,35,36,37,38
+  18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28,
+  48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38
 ];
 
 function criarOdontograma() {
@@ -172,7 +181,7 @@ function atualizarOrcamento() {
 
   let total = 0;
 
-  itens.forEach((i,index) => {
+  itens.forEach((i, index) => {
     total += i.valor;
 
     const li = document.createElement("li");
@@ -180,7 +189,6 @@ function atualizarOrcamento() {
       Dente ${i.dente} - ${i.proc} - R$ ${i.valor.toFixed(2)}
       <button onclick="remover(${index})">X</button>
     `;
-
     lista.appendChild(li);
   });
 
@@ -193,9 +201,13 @@ function remover(i) {
 }
 
 async function salvarOrcamento() {
+  const paciente = document.getElementById("pacienteOrcamento").value;
   const total = itens.reduce((a,b)=>a+b.valor,0);
 
+  if (!paciente) return alert("Selecione paciente");
+
   const data = {
+    paciente,
     data: new Date().toLocaleDateString(),
     itens,
     total
@@ -224,11 +236,11 @@ async function listarOrcamentos() {
 
     const li = document.createElement("li");
     li.innerHTML = `
+      <strong>${data.paciente}</strong><br>
       ${data.data} - R$ ${data.total.toFixed(2)}
       <button onclick="editar('${d.id}')">Editar</button>
       <button onclick="excluirOrcamento('${d.id}')">Excluir</button>
     `;
-
     lista.appendChild(li);
   });
 }
