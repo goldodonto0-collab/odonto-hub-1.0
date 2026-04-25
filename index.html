@@ -6,6 +6,9 @@
   <title>Odonto Hub</title>
 
   <link rel="stylesheet" href="style.css">
+
+  <!-- 🔥 PDF PROFISSIONAL -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
@@ -24,6 +27,7 @@
 
   <!-- PACIENTES -->
   <section id="pacientes" class="aba">
+
     <div class="card">
       <h2>Cadastro de Pacientes</h2>
 
@@ -43,10 +47,12 @@
       <h3>Pacientes</h3>
       <ul id="listaPacientes"></ul>
     </div>
+
   </section>
 
   <!-- ATENDIMENTOS -->
   <section id="atendimentos" class="aba" style="display:none;">
+
     <div class="card">
       <h2>Novo Atendimento</h2>
 
@@ -62,6 +68,7 @@
       <h3>Histórico</h3>
       <ul id="lista"></ul>
     </div>
+
   </section>
 
   <!-- CALENDÁRIO -->
@@ -81,6 +88,7 @@
 
       <select id="pacienteOrcamento"></select>
 
+      <!-- odontograma -->
       <div id="odontograma" class="odontograma"></div>
 
       <input id="denteSelecionado" placeholder="Dente" readonly>
@@ -107,6 +115,7 @@
 
 </div>
 
+<!-- SCRIPT -->
 <script type="module" src="script.js"></script>
 
 </body>
