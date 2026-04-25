@@ -206,7 +206,7 @@ async function listarOrcamentos() {
       <strong>${data.paciente}</strong><br>
       ${data.data} - R$ ${data.total.toFixed(2)}<br>
 
-      <button onclick='gerarPDFHistorico(${JSON.stringify(data)})'>PDF</button>
+      <button onclick='gerarPDF(${JSON.stringify(data)})'>PDF</button>
       <button onclick="editar('${d.id}')">Editar</button>
       <button onclick="excluirOrcamento('${d.id}')">Excluir</button>
     `;
@@ -215,7 +215,7 @@ async function listarOrcamentos() {
   });
 }
 
-// ================= PDF COM LOGO =================
+// ================= 🔥 PDF PROFISSIONAL =================
 
 function gerarPDF(data) {
   const janela = window.open("", "_blank");
@@ -223,39 +223,144 @@ function gerarPDF(data) {
   let itensHTML = "";
 
   data.itens.forEach(i => {
-    itensHTML += `<p>Dente ${i.dente} - ${i.proc} - R$ ${i.valor.toFixed(2)}</p>`;
+    itensHTML += `
+      <tr>
+        <td>${i.dente}</td>
+        <td>${i.proc}</td>
+        <td style="text-align:right;">R$ ${i.valor.toFixed(2)}</td>
+      </tr>
+    `;
   });
 
   janela.document.write(`
     <html>
-      <head>
-        <title>Orçamento</title>
-        <style>
-          body { font-family: Arial; padding: 30px; }
-          h1 { text-align: center; }
-          .logo { display:flex; justify-content:center; margin-bottom:20px; }
-          .logo img { width:120px; }
-          p { margin: 6px 0; }
-          .total { margin-top: 20px; font-size: 20px; font-weight: bold; }
-        </style>
-      </head>
-      <body>
+    <head>
+      <title>Orçamento Odontológico</title>
+
+      <style>
+        body {
+          font-family: Arial;
+          margin: 0;
+          padding: 30px;
+          color: #333;
+        }
+
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-bottom: 2px solid #0b5ed7;
+          padding-bottom: 15px;
+          margin-bottom: 25px;
+        }
+
+        .logo img {
+          width: 220px;
+          object-fit: contain;
+        }
+
+        .clinic-info {
+          text-align: right;
+        }
+
+        .clinic-info h2 {
+          margin: 0;
+          color: #0b5ed7;
+        }
+
+        .clinic-info p {
+          margin: 2px 0;
+          font-size: 12px;
+        }
+
+        .title {
+          text-align: center;
+          font-size: 22px;
+          margin: 20px 0;
+          font-weight: bold;
+        }
+
+        .info {
+          margin-bottom: 20px;
+          font-size: 14px;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        th {
+          background: #0b5ed7;
+          color: white;
+          padding: 10px;
+        }
+
+        td {
+          padding: 10px;
+          border-bottom: 1px solid #ddd;
+        }
+
+        .total {
+          margin-top: 20px;
+          text-align: right;
+          font-size: 18px;
+          font-weight: bold;
+          color: #0b5ed7;
+        }
+
+        .footer {
+          position: fixed;
+          bottom: 20px;
+          width: 100%;
+          text-align: center;
+          font-size: 11px;
+          color: #777;
+        }
+      </style>
+    </head>
+
+    <body>
+
+      <div class="header">
 
         <div class="logo">
           <img src="${LOGO_URL}">
         </div>
 
-        <h1>Orçamento Odontológico</h1>
+        <div class="clinic-info">
+          <h2>Clínica Odontológica</h2>
+          <p>Atendimento especializado</p>
+          <p>Telefone: (XX) XXXX-XXXX</p>
+        </div>
 
+      </div>
+
+      <div class="title">ORÇAMENTO ODONTOLÓGICO</div>
+
+      <div class="info">
         <p><strong>Paciente:</strong> ${data.paciente}</p>
         <p><strong>Data:</strong> ${data.data}</p>
+      </div>
 
-        <hr>
-
+      <table>
+        <tr>
+          <th>Dente</th>
+          <th>Procedimento</th>
+          <th>Valor</th>
+        </tr>
         ${itensHTML}
+      </table>
 
-        <div class="total">Total: R$ ${data.total.toFixed(2)}</div>
-      </body>
+      <div class="total">
+        Total: R$ ${data.total.toFixed(2)}
+      </div>
+
+      <div class="footer">
+        Sistema odontológico - documento gerado automaticamente
+      </div>
+
+    </body>
     </html>
   `);
 
@@ -267,23 +372,6 @@ function gerarPDF(data) {
   }, 500);
 }
 
-// ================= PDF HISTÓRICO =================
-
-function gerarPDFHistorico(data) {
-  gerarPDF(data);
-}
-
-// ================= ABAS =================
-
-function mostrarAba(aba) {
-  document.querySelectorAll(".aba").forEach(a => a.style.display = "none");
-  document.getElementById(aba).style.display = "block";
-
-  if (aba === "orcamentos") {
-    listarOrcamentos();
-  }
-}
-
 // ================= INIT =================
 
 window.onload = () => {
@@ -291,7 +379,7 @@ window.onload = () => {
   window.adicionarItemOrcamento = adicionarItemOrcamento;
   window.removerItem = removerItem;
   window.salvarOrcamento = salvarOrcamento;
-  window.gerarPDFHistorico = gerarPDFHistorico;
+  window.gerarPDF = gerarPDF;
   window.mostrarAba = mostrarAba;
 
   criarOdontograma();
